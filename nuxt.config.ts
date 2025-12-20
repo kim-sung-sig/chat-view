@@ -5,17 +5,27 @@ export default defineNuxtConfig({
   
   modules: [
     '@nuxtjs/tailwindcss',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    '@vueuse/nuxt'
   ],
 
   runtimeConfig: {
     // Private keys (server-side only)
     public: {
-      // Public keys (client-side)
+      // API URLs
       apiBaseUrl: 'http://localhost:8080',
       messageApiUrl: 'http://localhost:8081',
       systemApiUrl: 'http://localhost:8082',
-      websocketUrl: 'ws://localhost:8083/ws/chat'
+      websocketUrl: 'ws://localhost:8083/ws/chat',
+
+      // Auth API
+      authApiUrl: process.env.NUXT_PUBLIC_AUTH_API_URL || 'http://localhost:8084',
+
+      // OAuth2 Client IDs
+      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+      githubClientId: process.env.NUXT_PUBLIC_GITHUB_CLIENT_ID || '',
+      kakaoClientId: process.env.NUXT_PUBLIC_KAKAO_CLIENT_ID || '',
+      naverClientId: process.env.NUXT_PUBLIC_NAVER_CLIENT_ID || '',
     }
   },
 
@@ -31,4 +41,9 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css'],
+
+  typescript: {
+    strict: true,
+    typeCheck: false, // 개발 중에는 false로 설정
+  },
 })

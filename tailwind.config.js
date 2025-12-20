@@ -8,6 +8,25 @@ export default {
     "./app.vue",
   ],
   darkMode: 'class',
+  safelist: [
+    // Brand colors
+    'bg-brand-50', 'bg-brand-100', 'bg-brand-200', 'bg-brand-300', 'bg-brand-400',
+    'bg-brand-500', 'bg-brand-600', 'bg-brand-700', 'bg-brand-800', 'bg-brand-900',
+    'text-brand-50', 'text-brand-100', 'text-brand-200', 'text-brand-300', 'text-brand-400',
+    'text-brand-500', 'text-brand-600', 'text-brand-700', 'text-brand-800', 'text-brand-900',
+    'hover:bg-brand-700', 'hover:bg-brand-600', 'focus:ring-brand-500',
+    // Danger colors
+    'bg-danger-50', 'bg-danger-500', 'bg-danger-600', 'bg-danger-700',
+    'hover:bg-danger-600', 'focus:ring-danger-500',
+    // Success colors
+    'bg-success-500', 'bg-success-600',
+    // Warning colors
+    'bg-warning-500', 'bg-warning-600',
+    // Workspace colors
+    'bg-workspace-bg', 'bg-workspace-sidebar', 'bg-workspace-hover',
+    'text-workspace-text', 'text-workspace-text-muted',
+    'border-workspace-border',
+  ],
   theme: {
     extend: {
       colors: {

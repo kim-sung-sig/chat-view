@@ -26,7 +26,16 @@ export const useMessageStore = defineStore('message', {
     hasMoreMessages: (state) => (channelId: string) => {
       return state.hasMore[channelId] ?? true
     },
-    isLoading: (state) => state.loading
+    isLoading: (state) => state.loading,
+
+    // 현재 채널의 메시지 (채널 페이지에서 사용)
+    messages(): Message[] {
+      const channelStore = useChannelStore()
+      const currentChannelId = channelStore.currentChannel?.channelId
+      return currentChannelId ? (this.messages[currentChannelId] || []) : []
+    },
+
+    loading: (state) => state.loading,
   },
 
   actions: {
@@ -97,7 +106,24 @@ export const useMessageStore = defineStore('message', {
       // 중복 체크
       const exists = this.messages[channelId].some((m: Message) => m.messageId === message.messageId)
       if (!exists) {
-        this.messages[channelId].unshift(message)
+        this.messages[channelId].push(message) // 최신 메시지를 마지막에 추가
+      }
+    },
+
+    // WebSocket 메시지 리스너 등록
+    setupMessageListener() {
+      if (import.meta.client) {
+        window.addEventListener('ws-message', ((event: CustomEvent) => {
+          const message = event.detail as Message
+          this.addMessage(message.channelId, message)
+        }) as EventListener)
+      }
+    },
+
+    // WebSocket 메시지 리스너 제거
+    removeMessageListener() {
+      if (import.meta.client) {
+        window.removeEventListener('ws-message', this.setupMessageListener as EventListener)
       }
     },
 

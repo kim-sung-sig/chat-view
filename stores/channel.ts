@@ -4,6 +4,7 @@ import type { Channel, ChannelDetail } from '~/types/channel'
 interface ChannelState {
   channels: Channel[]
   currentChannel: ChannelDetail | null
+  directMessages: any[] // DM 목록
   loading: boolean
   error: string | null
 }
@@ -12,6 +13,7 @@ export const useChannelStore = defineStore('channel', {
   state: (): ChannelState => ({
     channels: [],
     currentChannel: null,
+    directMessages: [],
     loading: false,
     error: null
   }),
@@ -19,6 +21,7 @@ export const useChannelStore = defineStore('channel', {
   getters: {
     getChannels: (state) => state.channels,
     getCurrentChannel: (state) => state.currentChannel,
+    currentChannelId: (state) => state.currentChannel?.channelId || null,
     isLoading: (state) => state.loading
   },
 

@@ -38,6 +38,9 @@ export interface JwtToken {
 export interface User {
   userId: string
   username: string
+  name?: string
   email?: string
   profileImage?: string
+  avatar?: string
+  status?: 'online' | 'away' | 'busy' | 'offline'
 }

@@ -15,6 +15,8 @@ export interface Channel {
   createdAt: string
   updatedAt: string
   memberCount?: number
+  unreadCount?: number
+  mentionCount?: number
   lastMessage?: {
     content: string
     sentAt: string

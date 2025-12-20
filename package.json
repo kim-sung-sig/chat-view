@@ -11,11 +11,13 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@floating-ui/vue": "^1.1.9",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "@pinia/nuxt": "^0.5.1",
     "@vueuse/core": "^14.1.0",
     "@vueuse/motion": "^3.0.3",
+    "@vueuse/nuxt": "^14.1.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "emoji-mart-vue-fast": "^15.0.5",

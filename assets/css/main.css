@@ -1,9 +1,11 @@
+/* 폰트 임포트 - @import는 항상 최상단에 위치해야 함 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 폰트 임포트 */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   /* 전역 스타일 리셋 */
