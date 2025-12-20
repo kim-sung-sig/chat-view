@@ -159,6 +159,24 @@ export const useUIStore = defineStore('ui', {
       this.setTheme(newTheme)
     },
 
+    // Toast 알림
+    showToast(toast: {
+      type: 'success' | 'error' | 'info' | 'warning'
+      message: string
+      duration?: number
+    }) {
+      const id = `toast-${Date.now()}`
+      this.toasts.push({ id, ...toast })
+      
+      setTimeout(() => {
+        this.removeToast(id)
+      }, toast.duration || 3000)
+    },
+
+    removeToast(id: string) {
+      this.toasts = this.toasts.filter(t => t.id !== id)
+    },
+
     /**
      * 저장된 테마 로드
      */

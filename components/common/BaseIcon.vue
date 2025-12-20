@@ -21,6 +21,8 @@ import {
   TrashIcon,
   XMarkIcon,
   CheckIcon,
+  LockClosedIcon,
+  GlobeAltIcon,
 
   // Communication
   PaperAirplaneIcon,
@@ -51,6 +53,8 @@ import {
   XCircleIcon,
   SunIcon,
   MoonIcon,
+  CodeBracketIcon,
+  ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
 
 import {

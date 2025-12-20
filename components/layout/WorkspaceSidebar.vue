@@ -5,7 +5,7 @@
       <h1 class="font-bold text-foreground truncate">워크스페이스</h1>
       <BaseTooltip text="새 채널">
         <button
-          @click="handleCreateChannel"
+          @click="showCreateChannelModal = true"
           class="p-1.5 rounded hover:bg-accent transition-colors"
         >
           <BaseIcon name="plus" size="sm" class="text-muted-foreground" />
@@ -29,11 +29,11 @@
               class="text-muted-foreground transition-transform"
             />
             <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              채널
+              텍스트 채널
             </span>
           </div>
           <button
-            @click.stop="handleCreateChannel"
+            @click.stop="showCreateChannelModal = true"
             class="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-accent-foreground/10 transition-opacity"
           >
             <BaseIcon name="plus" size="sm" class="text-muted-foreground" />
@@ -42,14 +42,47 @@
 
         <nav v-show="channelsExpanded" class="mt-1 space-y-0.5 px-2">
           <ChannelItem
-            v-for="channel in channels"
+            v-for="channel in textChannels"
             :key="channel.channelId"
             :channel="channel"
             :is-active="currentChannelId === channel.channelId"
             @click="handleSelectChannel(channel.channelId)"
           />
-          <div v-if="channels.length === 0" class="px-2 py-2 text-xs text-muted-foreground">
+          <div v-if="textChannels.length === 0" class="px-2 py-2 text-xs text-muted-foreground">
             채널이 없습니다
+          </div>
+        </nav>
+      </div>
+
+      <!-- 음성 채널 섹션 -->
+      <div class="mb-4">
+        <button
+          class="w-full px-3 py-1 flex items-center justify-between hover:bg-accent transition-colors group"
+          @click="voiceChannelsExpanded = !voiceChannelsExpanded"
+        >
+          <div class="flex items-center gap-1.5">
+            <BaseIcon
+              name="chevron-down"
+              size="sm"
+              :class="{ '-rotate-90': !voiceChannelsExpanded }"
+              class="text-muted-foreground transition-transform"
+            />
+            <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              음성 채널
+            </span>
+          </div>
+        </button>
+
+        <nav v-show="voiceChannelsExpanded" class="mt-1 space-y-0.5 px-2">
+          <ChannelItem
+            v-for="channel in voiceChannels"
+            :key="channel.channelId"
+            :channel="channel"
+            :is-active="currentChannelId === channel.channelId"
+            @click="handleSelectChannel(channel.channelId)"
+          />
+          <div v-if="voiceChannels.length === 0" class="px-2 py-2 text-xs text-muted-foreground">
+            음성 채널이 없습니다
           </div>
         </nav>
       </div>
@@ -99,14 +132,14 @@
       <div class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent transition-colors">
         <UserAvatar
           :src="currentUser?.avatar"
-          :name="currentUser?.name || 'User'"
+          :name="currentUser?.username || 'User'"
           size="sm"
           :status="currentUser?.status"
           show-status
         />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold text-foreground truncate">
-            {{ currentUser?.name || 'User' }}
+            {{ currentUser?.username || 'User' }}
           </p>
           <p class="text-xs text-muted-foreground truncate">
             {{ statusText }}
@@ -122,6 +155,13 @@
         </BaseTooltip>
       </div>
     </div>
+
+    <!-- 채널 생성 모달 -->
+    <CreateChannelModal
+      :show="showCreateChannelModal"
+      @close="showCreateChannelModal = false"
+      @created="handleChannelCreated"
+    />
   </aside>
 </template>
 
@@ -130,17 +170,25 @@ import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '~/stores/auth'
 import { useChannelStore } from '~/stores/channel'
-import { useUIStore } from '~/stores/ui'
 
 const authStore = useAuthStore()
 const channelStore = useChannelStore()
-const UIStore = useUIStore()
 
 const { currentUser } = storeToRefs(authStore)
 const { channels, directMessages, currentChannelId } = storeToRefs(channelStore)
 
 const channelsExpanded = ref(true)
+const voiceChannelsExpanded = ref(true)
 const dmsExpanded = ref(true)
+const showCreateChannelModal = ref(false)
+
+const textChannels = computed(() => {
+  return channels.value.filter(c => c.type === 'TEXT' || c.type === 'ANNOUNCEMENT')
+})
+
+const voiceChannels = computed(() => {
+  return channels.value.filter(c => c.type === 'VOICE')
+})
 
 const statusText = computed(() => {
   const status = currentUser.value?.status
@@ -153,14 +201,6 @@ const statusText = computed(() => {
   return statusMap[status as keyof typeof statusMap] || '오프라인'
 })
 
-const handleCreateChannel = () => {
-  UIStore.openModal('createChannel')
-}
-
-const handleCreateDM = () => {
-  console.log('DM 생성')
-}
-
 const handleSelectChannel = async (channelId: string) => {
   await channelStore.fetchChannelDetail(channelId)
   navigateTo(`/channels/${channelId}`)
@@ -169,6 +209,14 @@ const handleSelectChannel = async (channelId: string) => {
 const handleSelectDM = async (dmId: string) => {
   await channelStore.fetchChannelDetail(dmId)
   navigateTo(`/dm/${dmId}`)
+}
+
+const handleCreateDM = () => {
+  console.log('DM 생성')
+}
+
+const handleChannelCreated = (channelId: string) => {
+  handleSelectChannel(channelId)
 }
 </script>
 
