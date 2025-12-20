@@ -1,29 +1,32 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 to-brand-100 dark:from-workspace-bg dark:to-workspace-sidebar p-4">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-discord-bg dark:via-discord-sidebar dark:to-discord-bg p-4">
     <div class="w-full max-w-md">
       <!-- 로고 및 타이틀 -->
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-workspace-text mb-2">
-          💬 Chat Platform
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 mb-4 shadow-lg">
+          <span class="text-4xl">💬</span>
+        </div>
+        <h1 class="text-4xl font-bold text-foreground mb-2">
+          Chat Platform
         </h1>
-        <p class="text-gray-600 dark:text-workspace-text-muted">
+        <p class="text-muted-foreground">
           실시간 채팅 플랫폼에 오신 것을 환영합니다
         </p>
       </div>
 
       <!-- 로그인 카드 -->
-      <div class="bg-white dark:bg-workspace-sidebar rounded-2xl shadow-xl p-8">
+      <div class="bg-card dark:bg-discord-sidebar rounded-xl shadow-2xl p-8 border border-border dark:border-discord-hover">
         <!-- 탭 메뉴 -->
-        <div class="flex gap-2 mb-6 border-b border-gray-200 dark:border-workspace-border">
+        <div class="flex gap-2 mb-6 p-1 bg-secondary dark:bg-discord-bg rounded-lg">
           <button
             v-for="tab in tabs"
             :key="tab.id"
             @click="activeTab = tab.id"
             :class="[
-              'flex-1 py-3 text-sm font-medium transition-colors border-b-2',
+              'flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all',
               activeTab === tab.id
-                ? 'border-brand-600 text-brand-600 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-workspace-text-muted dark:hover:text-workspace-text'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             ]"
           >
             {{ tab.label }}
@@ -52,16 +55,17 @@
             variant="primary"
             full-width
             :loading="loading"
+            size="lg"
           >
             로그인
           </BaseButton>
 
-          <p class="text-center text-sm text-gray-600 dark:text-workspace-text-muted">
+          <p class="text-center text-sm text-muted-foreground">
             계정이 없으신가요?
             <button
               type="button"
               @click="activeTab = 'register'"
-              class="text-brand-600 hover:underline"
+              class="text-primary hover:underline font-medium ml-1"
             >
               회원가입
             </button>
@@ -105,16 +109,17 @@
             variant="primary"
             full-width
             :loading="loading"
+            size="lg"
           >
             회원가입
           </BaseButton>
 
-          <p class="text-center text-sm text-gray-600 dark:text-workspace-text-muted">
+          <p class="text-center text-sm text-muted-foreground">
             이미 계정이 있으신가요?
             <button
               type="button"
               @click="activeTab = 'password'"
-              class="text-brand-600 hover:underline"
+              class="text-primary hover:underline font-medium ml-1"
             >
               로그인
             </button>
@@ -123,23 +128,33 @@
 
         <!-- OAuth2 로그인 -->
         <div v-else-if="activeTab === 'oauth2'" class="space-y-3">
+          <p class="text-sm text-muted-foreground mb-4 text-center">
+            소셜 계정으로 간편하게 로그인하세요
+          </p>
           <BaseButton
             v-for="provider in oauth2Providers"
             :key="provider.id"
             variant="secondary"
             full-width
             @click="handleOAuth2Login(provider.id)"
+            size="lg"
           >
-            <BaseIcon :name="provider.icon" size="sm" class="mr-2" />
+            <BaseIcon :name="provider.icon" size="sm" />
             {{ provider.label }}로 로그인
           </BaseButton>
         </div>
 
         <!-- MFA 검증 -->
         <form v-else-if="activeTab === 'mfa'" @submit.prevent="handleMFAVerify" class="space-y-4">
-          <p class="text-sm text-gray-600 dark:text-workspace-text-muted mb-4">
-            2단계 인증 코드를 입력해주세요.
-          </p>
+          <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <BaseIcon name="shield" size="lg" class="text-primary" />
+            </div>
+            <h3 class="font-semibold text-foreground mb-2">2단계 인증</h3>
+            <p class="text-sm text-muted-foreground">
+              인증 코드를 입력해주세요
+            </p>
+          </div>
 
           <div class="flex gap-2 mb-4">
             <button
@@ -150,8 +165,8 @@
               :class="[
                 'flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors',
                 selectedMFAMethod === method
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-workspace-hover dark:text-workspace-text'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               ]"
             >
               {{ getMFAMethodLabel(method) }}
@@ -159,7 +174,7 @@
           </div>
 
           <BaseInput
-            v-model="mfaCode"
+            v-model="mfaForm.code"
             label="인증 코드"
             placeholder="000000"
             required
@@ -171,191 +186,177 @@
             variant="primary"
             full-width
             :loading="loading"
+            size="lg"
           >
             인증
           </BaseButton>
+
+          <BaseButton
+            type="button"
+            variant="ghost"
+            full-width
+            @click="handleCancelMFA"
+          >
+            취소
+          </BaseButton>
         </form>
 
-        <!-- 에러 메시지 -->
-        <div v-if="error" class="mt-4 p-3 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-lg">
-          <p class="text-sm text-danger-700 dark:text-danger-400">
-            {{ error }}
-          </p>
+        <!-- 구분선 -->
+        <div v-if="activeTab === 'password' || activeTab === 'register'" class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-border"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-card dark:bg-discord-sidebar text-muted-foreground">또는</span>
+          </div>
         </div>
 
-        <!-- 개발용 임시 로그인 -->
-        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-workspace-border">
-          <p class="text-xs text-gray-500 dark:text-workspace-text-muted mb-2 text-center">
-            개발 모드 (JWT 서버 연동 전)
-          </p>
-          <BaseButton
-            variant="ghost"
-            size="sm"
-            full-width
-            @click="handleTempLogin"
-          >
-            임시 로그인
-          </BaseButton>
+        <!-- 빠른 로그인 (개발용) -->
+        <div v-if="activeTab === 'password' || activeTab === 'register'" class="space-y-2">
+          <p class="text-xs text-muted-foreground text-center mb-2">빠른 로그인 (개발용)</p>
+          <div class="grid grid-cols-2 gap-2">
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              @click="quickLogin('user1')"
+            >
+              User1
+            </BaseButton>
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              @click="quickLogin('user2')"
+            >
+              User2
+            </BaseButton>
+          </div>
         </div>
+      </div>
+
+      <!-- 푸터 -->
+      <div class="mt-8 text-center text-sm text-muted-foreground">
+        <p>© 2025 Chat Platform. All rights reserved.</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useAuthStore } from '~/stores/auth'
-import type { OAuth2Provider, MFAMethod } from '~/types/auth'
 
-// ============================================
-// State
-// ============================================
-const authStore = useAuthStore()
-
-const activeTab = ref<'password' | 'oauth2' | 'mfa' | 'register'>('password')
-const loading = ref(false)
-const error = ref('')
-
-const passwordForm = ref({
-  userId: '',
-  password: '',
+definePageMeta({
+  middleware: undefined,
+  layout: false
 })
 
-const registerForm = ref({
+const authStore = useAuthStore()
+const loading = ref(false)
+const activeTab = ref<'password' | 'register' | 'oauth2' | 'mfa'>('password')
+
+const tabs = [
+  { id: 'password', label: '로그인' },
+  { id: 'register', label: '회원가입' },
+  { id: 'oauth2', label: 'OAuth2' },
+]
+
+const passwordForm = reactive({
+  userId: '',
+  password: ''
+})
+
+const registerForm = reactive({
   userId: '',
   username: '',
   email: '',
-  password: '',
+  password: ''
 })
 
-const mfaCode = ref('')
-const selectedMFAMethod = ref<MFAMethod>('totp')
-const availableMFAMethods = ref<MFAMethod[]>([])
+const mfaForm = reactive({
+  code: ''
+})
 
-// ============================================
-// 탭 설정
-// ============================================
-const tabs = [
-  { id: 'password', label: '로그인' },
-  { id: 'oauth2', label: 'SNS 로그인' },
-]
+const selectedMFAMethod = ref<'totp' | 'sms' | 'email'>('totp')
+const availableMFAMethods = ref<Array<'totp' | 'sms' | 'email'>>(['totp', 'sms', 'email'])
 
 const oauth2Providers = [
-  { id: 'google', label: 'Google', icon: 'users' },
-  { id: 'github', label: 'GitHub', icon: 'users' },
-  { id: 'kakao', label: 'Kakao', icon: 'users' },
-  { id: 'naver', label: 'Naver', icon: 'users' },
+  { id: 'google', label: 'Google', icon: 'search' },
+  { id: 'github', label: 'GitHub', icon: 'code' },
+  { id: 'kakao', label: 'Kakao', icon: 'chat' },
+  { id: 'naver', label: 'Naver', icon: 'globe' },
 ]
 
-// ============================================
-// Methods
-// ============================================
-
-/**
- * Password 로그인
- */
 const handlePasswordLogin = async () => {
   loading.value = true
-  error.value = ''
-
   try {
-    await authStore.loginWithPassword(passwordForm.value)
-
-    // MFA 필요 여부 확인
-    if (authStore.needsMFA) {
-      availableMFAMethods.value = authStore.mfaMethods
-      selectedMFAMethod.value = authStore.mfaMethods[0]
-      activeTab.value = 'mfa'
-      return
-    }
-
-    // 로그인 성공
-    await navigateTo('/channels')
-  } catch (err: any) {
-    error.value = err.message || '로그인에 실패했습니다.'
+    await authStore.login({
+      userId: passwordForm.userId,
+      password: passwordForm.password
+    })
+    navigateTo('/channels')
+  } catch (error) {
+    console.error('Login failed:', error)
   } finally {
     loading.value = false
   }
 }
 
-/**
- * 회원가입
- */
 const handleRegister = async () => {
   loading.value = true
-  error.value = ''
-
   try {
-    await authStore.register(registerForm.value)
-    await navigateTo('/channels')
-  } catch (err: any) {
-    error.value = err.message || '회원가입에 실패했습니다.'
+    await authStore.register(registerForm)
+    activeTab.value = 'password'
+  } catch (error) {
+    console.error('Register failed:', error)
   } finally {
     loading.value = false
   }
 }
 
-/**
- * OAuth2 로그인
- */
-const handleOAuth2Login = (provider: OAuth2Provider) => {
-  const authUrl = authStore.getOAuth2Url(provider)
-  window.location.href = authUrl
+const handleOAuth2Login = async (provider: string) => {
+  loading.value = true
+  try {
+    await authStore.loginWithOAuth2(provider)
+  } catch (error) {
+    console.error('OAuth2 login failed:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
-/**
- * MFA 검증
- */
 const handleMFAVerify = async () => {
-  if (!authStore.user) return
-
   loading.value = true
-  error.value = ''
-
   try {
     await authStore.verifyMFA({
-      userId: authStore.user.userId,
-      code: mfaCode.value,
-      method: selectedMFAMethod.value,
+      code: mfaForm.code,
+      method: selectedMFAMethod.value
     })
-
-    await navigateTo('/channels')
-  } catch (err: any) {
-    error.value = err.message || 'MFA 인증에 실패했습니다.'
+    navigateTo('/channels')
+  } catch (error) {
+    console.error('MFA verification failed:', error)
   } finally {
     loading.value = false
   }
 }
 
-/**
- * 임시 로그인 (개발용)
- */
-const handleTempLogin = () => {
-  authStore.tempLogin('user1', '테스트 사용자')
-  navigateTo('/channels')
+const handleCancelMFA = () => {
+  activeTab.value = 'password'
+  mfaForm.code = ''
 }
 
-/**
- * MFA 방식 라벨
- */
-const getMFAMethodLabel = (method: MFAMethod): string => {
-  const labels: Record<MFAMethod, string> = {
+const getMFAMethodLabel = (method: string) => {
+  const labels = {
     totp: 'OTP 앱',
     sms: 'SMS',
-    email: '이메일',
+    email: '이메일'
   }
-  return labels[method]
+  return labels[method as keyof typeof labels] || method
 }
 
-// ============================================
-// Lifecycle
-// ============================================
-
-// 이미 로그인된 경우 채널로 리다이렉트
-onMounted(() => {
-  if (authStore.isLoggedIn) {
-    navigateTo('/channels')
-  }
-})
+const quickLogin = async (userId: string) => {
+  passwordForm.userId = userId
+  passwordForm.password = 'password'
+  await handlePasswordLogin()
+}
 </script>
 

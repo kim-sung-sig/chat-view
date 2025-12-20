@@ -1,14 +1,57 @@
-/* 폰트 임포트 - @import는 항상 최상단에 위치해야 함 */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import './tokens.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
-  /* 전역 스타일 리셋 */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
   html {
     @apply antialiased;
     -webkit-font-smoothing: antialiased;
@@ -16,213 +59,98 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 font-sans;
-  }
-
-  /* 다크 모드 */
-  .dark body {
-    @apply bg-workspace-bg text-workspace-text;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 }
 
 @layer components {
-  /* ============================================
-     Button 컴포넌트 스타일
-     ============================================ */
+  /* Button 컴포넌트 */
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium
-           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-md font-medium
+           transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-ring focus-visible:ring-offset-2
+           disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-primary {
-    @apply bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500
-           active:bg-brand-800;
+    @apply bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500
-           active:bg-gray-400;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
 
   .btn-ghost {
-    @apply bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-gray-500;
+    @apply hover:bg-accent hover:text-accent-foreground;
   }
 
   .btn-danger {
-    @apply bg-danger-500 text-white hover:bg-danger-600 focus:ring-danger-500
-           active:bg-danger-700;
+    @apply bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
   }
 
-  /* 버튼 크기 변형 */
   .btn-sm {
-    @apply px-3 py-1.5 text-sm;
+    @apply h-8 px-3 text-xs;
   }
 
   .btn-md {
-    @apply px-4 py-2 text-sm;
+    @apply h-10 px-4 text-sm;
   }
 
   .btn-lg {
-    @apply px-6 py-3 text-base;
+    @apply h-11 px-6 text-base;
   }
 
-  /* ============================================
-     Input 컴포넌트 스타일
-     ============================================ */
+  /* Input 컴포넌트 */
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
-           bg-white text-gray-900 placeholder-gray-400
-           focus:ring-2 focus:ring-brand-500 focus:border-transparent
-           outline-none transition-shadow duration-200
-           disabled:bg-gray-100 disabled:cursor-not-allowed;
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2
+           text-sm ring-offset-background file:border-0 file:bg-transparent
+           file:text-sm file:font-medium placeholder:text-muted-foreground
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+           focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
-  .input-error {
-    @apply border-danger-500 focus:ring-danger-500;
-  }
-
-  /* ============================================
-     Sidebar 컴포넌트 스타일
-     ============================================ */
-  .sidebar-item {
-    @apply flex items-center gap-2 px-3 py-1.5 rounded-md text-sm
-           text-gray-700 hover:bg-gray-100 cursor-pointer
-           transition-colors duration-150;
-  }
-
-  .sidebar-item.active {
-    @apply bg-brand-50 text-brand-700 font-medium;
-  }
-
-  .sidebar-item:hover {
-    @apply bg-gray-100;
-  }
-
-  /* 다크 모드 사이드바 */
-  .dark .sidebar-item {
-    @apply text-workspace-text hover:bg-workspace-hover;
-  }
-
-  .dark .sidebar-item.active {
-    @apply bg-workspace-active text-white;
-  }
-
-  /* ============================================
-     Message 컴포넌트 스타일
-     ============================================ */
-  .message-container {
-    @apply px-4 py-2 hover:bg-gray-50 transition-colors duration-150;
-  }
-
-  .dark .message-container:hover {
-    @apply bg-workspace-hover;
-  }
-
-  /* ============================================
-     Card 컴포넌트 스타일
-     ============================================ */
+  /* Card 컴포넌트 */
   .card {
-    @apply bg-white rounded-lg border border-gray-200 shadow-soft;
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
   }
 
-  .dark .card {
-    @apply bg-workspace-sidebar border-gray-700;
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
   }
 
-  /* ============================================
-     Badge 컴포넌트 스타일
-     ============================================ */
-  .badge {
-    @apply inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-full;
+  .card-content {
+    @apply p-6 pt-0;
   }
 
-  .badge-primary {
-    @apply bg-brand-100 text-brand-700;
-  }
-
-  .badge-success {
-    @apply bg-success-50 text-success-600;
-  }
-
-  .badge-warning {
-    @apply bg-warning-50 text-warning-600;
-  }
-
-  .badge-danger {
-    @apply bg-danger-50 text-danger-600;
-  }
-}
-
-@layer utilities {
-  /* ============================================
-     스크롤바 스타일
-     ============================================ */
-  .scrollbar-custom {
+  /* Scrollbar */
+  .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgb(203 213 225) transparent;
+    scrollbar-color: rgb(100 116 139 / 0.5) transparent;
   }
 
-  .scrollbar-custom::-webkit-scrollbar {
+  .scrollbar-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
-  .scrollbar-custom::-webkit-scrollbar-track {
+  .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .scrollbar-custom::-webkit-scrollbar-thumb {
-    background-color: rgb(203 213 225);
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(100 116 139 / 0.5);
     border-radius: 4px;
   }
 
-  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(148 163 184);
-  }
-
-  /* 스크롤바 숨김 */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* ============================================
-     텍스트 줄임 유틸리티
-     ============================================ */
-  .line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* ============================================
-     레이아웃 유틸리티
-     ============================================ */
-  .flex-center {
-    @apply flex items-center justify-center;
-  }
-
-  .absolute-center {
-    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(100 116 139 / 0.7);
   }
 }
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+

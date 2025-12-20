@@ -1,78 +1,93 @@
 <template>
   <NuxtLayout name="default">
-    <div class="h-full flex items-center justify-center bg-gray-50 dark:bg-workspace-bg">
-      <div class="text-center max-w-lg">
+    <div class="h-full flex items-center justify-center bg-background dark:bg-discord-bg">
+      <div class="text-center max-w-2xl px-6">
+        <!-- 아이콘 -->
         <div class="mb-8">
-          <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-brand-100 dark:bg-workspace-sidebar flex items-center justify-center">
-            <BaseIcon name="chat" size="xl" class="text-brand-600 dark:text-brand-400" />
+          <div class="w-32 h-32 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl">
+            <BaseIcon name="chat" size="xl" class="text-white w-16 h-16" />
           </div>
 
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-workspace-text mb-3">
-            채팅 시작하기
+          <h1 class="text-4xl font-bold text-foreground mb-4">
+            환영합니다! 👋
           </h1>
 
-          <p class="text-gray-600 dark:text-workspace-text-muted mb-8">
+          <p class="text-lg text-muted-foreground mb-8">
             왼쪽 사이드바에서 채널을 선택하거나<br />
-            새 채널을 만들어보세요!
+            새로운 채널을 만들어 대화를 시작해보세요
           </p>
         </div>
 
-        <div class="space-y-3">
+        <!-- 액션 버튼 -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <BaseButton
             variant="primary"
             size="lg"
-            full-width
             @click="handleCreateChannel"
+            class="min-w-[200px]"
           >
-            <BaseIcon name="plus" size="sm" class="mr-2" />
+            <BaseIcon name="plus" size="sm" />
             새 채널 만들기
           </BaseButton>
 
           <BaseButton
             variant="secondary"
             size="lg"
-            full-width
             @click="handleBrowseChannels"
+            class="min-w-[200px]"
           >
-            <BaseIcon name="search" size="sm" class="mr-2" />
+            <BaseIcon name="search" size="sm" />
             채널 둘러보기
           </BaseButton>
         </div>
 
         <!-- 최근 채널 -->
-        <div v-if="recentChannels.length > 0" class="mt-12">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-workspace-text mb-4">
+        <div v-if="recentChannels.length > 0" class="mt-16">
+          <h2 class="text-xl font-semibold text-foreground mb-6">
             최근 채널
           </h2>
 
-          <div class="space-y-2">
+          <div class="grid gap-3 max-w-md mx-auto">
             <button
               v-for="channel in recentChannels"
               :key="channel.channelId"
               @click="goToChannel(channel.channelId)"
-              class="w-full p-4 rounded-lg border border-gray-200 dark:border-workspace-border
-                     hover:border-brand-500 dark:hover:border-brand-500
-                     hover:bg-brand-50 dark:hover:bg-workspace-hover
-                     transition-colors text-left"
+              class="group p-4 rounded-lg border bg-card text-card-foreground hover:bg-accent hover:border-primary transition-all duration-200 text-left shadow-sm hover:shadow-md"
             >
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-brand-100 dark:bg-workspace-sidebar flex items-center justify-center">
-                  <span class="text-brand-600 dark:text-brand-400 font-semibold">#</span>
+              <div class="flex items-center gap-4">
+                <!-- 채널 아이콘 -->
+                <div class="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">#</span>
                 </div>
 
+                <!-- 채널 정보 -->
                 <div class="flex-1 min-w-0">
-                  <h3 class="font-medium text-gray-900 dark:text-workspace-text truncate">
+                  <h3 class="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                     {{ channel.name }}
                   </h3>
-                  <p v-if="channel.description" class="text-sm text-gray-500 dark:text-workspace-text-muted truncate">
+                  <p v-if="channel.description" class="text-sm text-muted-foreground truncate">
                     {{ channel.description }}
                   </p>
                 </div>
 
-                <BaseIcon name="arrow-right" size="sm" class="text-gray-400" />
+                <!-- 화살표 아이콘 -->
+                <BaseIcon
+                  name="arrow-right"
+                  size="sm"
+                  class="text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0"
+                />
               </div>
             </button>
           </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="mt-16 p-8 rounded-lg border bg-card/50">
+          <BaseIcon name="chat" size="lg" class="mx-auto mb-4 text-muted-foreground" />
+          <p class="text-muted-foreground">
+            아직 참여한 채널이 없습니다<br />
+            새 채널을 만들거나 기존 채널에 참여해보세요
+          </p>
         </div>
       </div>
     </div>
@@ -84,60 +99,32 @@ import { computed } from 'vue'
 import { useChannelStore } from '~/stores/channel'
 import { useUIStore } from '~/stores/ui'
 
-// ============================================
-// Middleware
-// ============================================
 definePageMeta({
   middleware: 'auth'
 })
 
-// ============================================
-// Stores
-// ============================================
 const channelStore = useChannelStore()
 const UIStore = useUIStore()
 
 const { channels } = storeToRefs(channelStore)
 
-// ============================================
-// Computed
-// ============================================
 const recentChannels = computed(() => {
-  // 최근 5개 채널만 표시
   return channels.value.slice(0, 5)
 })
 
-// ============================================
-// Methods
-// ============================================
-
-/**
- * 새 채널 만들기
- */
 const handleCreateChannel = () => {
   UIStore.openModal('createChannel')
 }
 
-/**
- * 채널 둘러보기
- */
 const handleBrowseChannels = () => {
-  // TODO: 채널 브라우저 모달 표시
   console.log('Browse channels')
 }
 
-/**
- * 채널로 이동
- */
 const goToChannel = (channelId: string) => {
   navigateTo(`/channels/${channelId}`)
 }
 
-// ============================================
-// Lifecycle
-// ============================================
 onMounted(async () => {
-  // 채널 목록 로드
   const authStore = useAuthStore()
   if (authStore.currentUser) {
     await channelStore.fetchChannels(authStore.currentUser.userId)

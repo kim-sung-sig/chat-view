@@ -1,263 +1,200 @@
 <template>
-  <NuxtLayout>
-    <div class="p-8 space-y-8">
+  <div class="min-h-screen bg-background dark:bg-discord-bg">
+    <div class="max-w-7xl mx-auto p-8 space-y-12">
       <!-- 헤더 -->
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-workspace-text">
+      <div class="space-y-2">
+        <h1 class="text-4xl font-bold text-foreground">
           디자인 시스템 데모
         </h1>
-        <p class="mt-2 text-gray-600 dark:text-workspace-text-muted">
-          공통 컴포넌트들을 테스트하고 확인할 수 있습니다.
+        <p class="text-lg text-muted-foreground">
+          Discord/Slack 스타일의 공통 컴포넌트들
         </p>
       </div>
 
-      <!-- Button 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Buttons
-        </h2>
+      <!-- Buttons -->
+      <section class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground mb-2">Buttons</h2>
+          <p class="text-muted-foreground">다양한 버튼 스타일과 크기</p>
+        </div>
 
-        <div class="space-y-4">
+        <div class="space-y-6 p-6 rounded-lg border bg-card">
           <!-- Variants -->
-          <div class="flex items-center gap-4">
-            <BaseButton variant="primary">Primary</BaseButton>
-            <BaseButton variant="secondary">Secondary</BaseButton>
-            <BaseButton variant="ghost">Ghost</BaseButton>
-            <BaseButton variant="danger">Danger</BaseButton>
+          <div class="space-y-3">
+            <h3 class="text-sm font-medium text-muted-foreground">Variants</h3>
+            <div class="flex flex-wrap items-center gap-3">
+              <BaseButton variant="primary">Primary</BaseButton>
+              <BaseButton variant="secondary">Secondary</BaseButton>
+              <BaseButton variant="ghost">Ghost</BaseButton>
+              <BaseButton variant="danger">Danger</BaseButton>
+            </div>
           </div>
 
           <!-- Sizes -->
-          <div class="flex items-center gap-4">
-            <BaseButton size="sm">Small</BaseButton>
-            <BaseButton size="md">Medium</BaseButton>
-            <BaseButton size="lg">Large</BaseButton>
+          <div class="space-y-3">
+            <h3 class="text-sm font-medium text-muted-foreground">Sizes</h3>
+            <div class="flex flex-wrap items-center gap-3">
+              <BaseButton size="sm">Small</BaseButton>
+              <BaseButton size="md">Medium</BaseButton>
+              <BaseButton size="lg">Large</BaseButton>
+            </div>
           </div>
 
           <!-- States -->
-          <div class="flex items-center gap-4">
-            <BaseButton :loading="true">Loading</BaseButton>
-            <BaseButton :disabled="true">Disabled</BaseButton>
+          <div class="space-y-3">
+            <h3 class="text-sm font-medium text-muted-foreground">States</h3>
+            <div class="flex flex-wrap items-center gap-3">
+              <BaseButton :loading="true">Loading</BaseButton>
+              <BaseButton :disabled="true">Disabled</BaseButton>
+              <BaseButton full-width>Full Width</BaseButton>
+            </div>
+          </div>
+
+          <!-- With Icons -->
+          <div class="space-y-3">
+            <h3 class="text-sm font-medium text-muted-foreground">With Icons</h3>
+            <div class="flex flex-wrap items-center gap-3">
+              <BaseButton variant="primary">
+                <BaseIcon name="plus" size="sm" />
+                새 채널
+              </BaseButton>
+              <BaseButton variant="secondary">
+                <BaseIcon name="search" size="sm" />
+                검색
+              </BaseButton>
+              <BaseButton variant="ghost">
+                <BaseIcon name="settings" size="sm" />
+                설정
+              </BaseButton>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Icon 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Icons
-        </h2>
-
-        <div class="flex items-center gap-6">
-          <BaseIcon name="home" />
-          <BaseIcon name="chat" />
-          <BaseIcon name="users" />
-          <BaseIcon name="settings" />
-          <BaseIcon name="bell" />
-          <BaseIcon name="search" />
-          <BaseIcon name="plus" />
-          <BaseIcon name="close" />
-        </div>
-
-        <div class="flex items-center gap-6">
-          <BaseIcon name="home" size="xs" />
-          <BaseIcon name="home" size="sm" />
-          <BaseIcon name="home" size="md" />
-          <BaseIcon name="home" size="lg" />
-          <BaseIcon name="home" size="xl" />
-        </div>
-      </section>
-
-      <!-- Avatar 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Avatars
-        </h2>
-
-        <div class="flex items-center gap-4">
-          <UserAvatar name="홍길동" size="xs" status="online" show-status />
-          <UserAvatar name="김철수" size="sm" status="away" show-status />
-          <UserAvatar name="이영희" size="md" status="busy" show-status />
-          <UserAvatar name="박민수" size="lg" status="offline" show-status />
-          <UserAvatar name="John Doe" size="xl" />
-        </div>
-      </section>
-
-      <!-- Dropdown 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Dropdown
-        </h2>
-
-        <div class="flex items-start gap-4">
-          <BaseDropdown label="메뉴 열기">
-            <BaseDropdownItem icon="home">홈</BaseDropdownItem>
-            <BaseDropdownItem icon="chat">채팅</BaseDropdownItem>
-            <BaseDropdownItem icon="users">사용자</BaseDropdownItem>
-            <div class="border-t border-gray-200 dark:border-workspace-border my-1" />
-            <BaseDropdownItem icon="settings">설정</BaseDropdownItem>
-            <BaseDropdownItem icon="close" danger>로그아웃</BaseDropdownItem>
-          </BaseDropdown>
-        </div>
-      </section>
-
-      <!-- Tooltip 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Tooltips
-        </h2>
-
-        <div class="flex items-center gap-4">
-          <BaseTooltip text="위쪽 툴팁" placement="top">
-            <BaseButton variant="secondary">위로</BaseButton>
-          </BaseTooltip>
-
-          <BaseTooltip text="아래쪽 툴팁" placement="bottom">
-            <BaseButton variant="secondary">아래로</BaseButton>
-          </BaseTooltip>
-
-          <BaseTooltip text="왼쪽 툴팁" placement="left">
-            <BaseButton variant="secondary">왼쪽</BaseButton>
-          </BaseTooltip>
-
-          <BaseTooltip text="오른쪽 툴팁" placement="right">
-            <BaseButton variant="secondary">오른쪽</BaseButton>
-          </BaseTooltip>
-        </div>
-      </section>
-
-      <!-- Input 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Inputs
-        </h2>
-
-        <div class="max-w-md space-y-4">
-          <BaseInput
-            v-model="inputValue"
-            label="이름"
-            placeholder="이름을 입력하세요"
-          />
-
-          <BaseInput
-            v-model="emailValue"
-            type="email"
-            label="이메일"
-            placeholder="email@example.com"
-          />
-
-          <BaseInput
-            v-model="searchValue"
-            type="search"
-            placeholder="검색..."
-          />
-
-          <BaseInput
-            v-model="errorInput"
-            label="에러 예시"
-            error="이 필드는 필수입니다"
-          />
-        </div>
-      </section>
-
-      <!-- Modal 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Modal
-        </h2>
-
+      <!-- Icons -->
+      <section class="space-y-6">
         <div>
-          <BaseButton @click="showModal = true">
-            모달 열기
-          </BaseButton>
+          <h2 class="text-2xl font-semibold text-foreground mb-2">Icons</h2>
+          <p class="text-muted-foreground">Heroicons 기반 아이콘 시스템</p>
+        </div>
 
-          <BaseModal
-            :is-open="showModal"
-            title="모달 제목"
-            @close="showModal = false"
-          >
-            <p class="text-gray-600 dark:text-workspace-text-muted">
-              모달 컨텐츠가 여기에 표시됩니다.
-            </p>
+        <div class="p-6 rounded-lg border bg-card">
+          <div class="grid grid-cols-8 gap-6">
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="home" size="lg" />
+              <span class="text-xs text-muted-foreground">home</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="chat" size="lg" />
+              <span class="text-xs text-muted-foreground">chat</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="users" size="lg" />
+              <span class="text-xs text-muted-foreground">users</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="settings" size="lg" />
+              <span class="text-xs text-muted-foreground">settings</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="bell" size="lg" />
+              <span class="text-xs text-muted-foreground">bell</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="search" size="lg" />
+              <span class="text-xs text-muted-foreground">search</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="plus" size="lg" />
+              <span class="text-xs text-muted-foreground">plus</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <BaseIcon name="close" size="lg" />
+              <span class="text-xs text-muted-foreground">close</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <template #footer>
-              <div class="flex justify-end gap-2">
-                <BaseButton variant="ghost" @click="showModal = false">
-                  취소
-                </BaseButton>
-                <BaseButton variant="primary" @click="showModal = false">
-                  확인
-                </BaseButton>
+      <!-- Typography -->
+      <section class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground mb-2">Typography</h2>
+          <p class="text-muted-foreground">텍스트 스타일 시스템</p>
+        </div>
+
+        <div class="p-6 rounded-lg border bg-card space-y-4">
+          <h1 class="text-4xl font-bold text-foreground">Heading 1</h1>
+          <h2 class="text-3xl font-semibold text-foreground">Heading 2</h2>
+          <h3 class="text-2xl font-semibold text-foreground">Heading 3</h3>
+          <h4 class="text-xl font-medium text-foreground">Heading 4</h4>
+          <p class="text-base text-foreground">Body text - Inter 폰트 기반</p>
+          <p class="text-sm text-muted-foreground">Muted text - 보조 텍스트용</p>
+        </div>
+      </section>
+
+      <!-- Color Palette -->
+      <section class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold text-foreground mb-2">Color Palette</h2>
+          <p class="text-muted-foreground">Discord/Slack 스타일 색상 시스템</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <!-- Light Mode -->
+          <div class="p-6 rounded-lg border bg-card space-y-3">
+            <h3 class="font-semibold text-foreground mb-4">Light Mode</h3>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-background border" />
+                <span class="text-sm">Background</span>
               </div>
-            </template>
-          </BaseModal>
-        </div>
-      </section>
-
-      <!-- Loading 컴포넌트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Loading Spinners
-        </h2>
-
-        <div class="flex items-center gap-6">
-          <LoadingSpinner size="sm" />
-          <LoadingSpinner size="md" />
-          <LoadingSpinner size="lg" />
-        </div>
-      </section>
-
-      <!-- 색상 팔레트 -->
-      <section class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-workspace-text">
-          Color Palette
-        </h2>
-
-        <!-- Brand Colors -->
-        <div>
-          <h3 class="text-lg font-medium mb-2">Brand Colors</h3>
-          <div class="flex gap-2">
-            <div v-for="i in [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]" :key="i"
-              :class="`bg-brand-${i} w-16 h-16 rounded flex items-center justify-center text-xs`"
-              :style="{ backgroundColor: `var(--color-brand-${i})` }">
-              {{ i }}
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-card border" />
+                <span class="text-sm">Card</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-primary" />
+                <span class="text-sm">Primary</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-secondary" />
+                <span class="text-sm">Secondary</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Semantic Colors -->
-        <div class="grid grid-cols-3 gap-4">
-          <div>
-            <h3 class="text-lg font-medium mb-2">Success</h3>
-            <div class="bg-success-500 h-16 rounded flex items-center justify-center text-white">
-              Success
-            </div>
-          </div>
-          <div>
-            <h3 class="text-lg font-medium mb-2">Warning</h3>
-            <div class="bg-warning-500 h-16 rounded flex items-center justify-center text-white">
-              Warning
-            </div>
-          </div>
-          <div>
-            <h3 class="text-lg font-medium mb-2">Danger</h3>
-            <div class="bg-danger-500 h-16 rounded flex items-center justify-center text-white">
-              Danger
+          <!-- Dark Mode -->
+          <div class="p-6 rounded-lg border bg-discord-bg text-white space-y-3">
+            <h3 class="font-semibold mb-4">Dark Mode (Discord Style)</h3>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-discord-bg border border-gray-700" />
+                <span class="text-sm">Background</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-discord-sidebar" />
+                <span class="text-sm">Sidebar</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-discord-brand" />
+                <span class="text-sm">Brand</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded bg-discord-hover" />
+                <span class="text-sm">Hover</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
     </div>
-  </NuxtLayout>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-// State
-const inputValue = ref('')
-const emailValue = ref('')
-const searchValue = ref('')
-const errorInput = ref('')
-const showModal = ref(false)
+definePageMeta({
+  middleware: undefined
+})
 </script>
 

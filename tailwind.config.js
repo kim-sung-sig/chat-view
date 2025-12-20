@@ -8,147 +8,113 @@ export default {
     "./app.vue",
   ],
   darkMode: 'class',
-  safelist: [
-    // Brand colors
-    'bg-brand-50', 'bg-brand-100', 'bg-brand-200', 'bg-brand-300', 'bg-brand-400',
-    'bg-brand-500', 'bg-brand-600', 'bg-brand-700', 'bg-brand-800', 'bg-brand-900',
-    'text-brand-50', 'text-brand-100', 'text-brand-200', 'text-brand-300', 'text-brand-400',
-    'text-brand-500', 'text-brand-600', 'text-brand-700', 'text-brand-800', 'text-brand-900',
-    'hover:bg-brand-700', 'hover:bg-brand-600', 'focus:ring-brand-500',
-    // Danger colors
-    'bg-danger-50', 'bg-danger-500', 'bg-danger-600', 'bg-danger-700',
-    'hover:bg-danger-600', 'focus:ring-danger-500',
-    // Success colors
-    'bg-success-500', 'bg-success-600',
-    // Warning colors
-    'bg-warning-500', 'bg-warning-600',
-    // Workspace colors
-    'bg-workspace-bg', 'bg-workspace-sidebar', 'bg-workspace-hover',
-    'text-workspace-text', 'text-workspace-text-muted',
-    'border-workspace-border',
-  ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       colors: {
-        // Brand Colors - 브랜드 메인 컬러
-        brand: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
-        // Workspace Colors - 워크스페이스 전용 색상
-        workspace: {
-          bg: '#1a1d21',
-          sidebar: '#232529',
-          hover: '#2c2d31',
-          active: '#1164a3',
-          text: '#d1d2d3',
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
-        // Semantic Colors - 의미적 색상 (기존 Tailwind 보완)
-        success: {
-          50: '#f0fdf4',
-          500: '#10b981',
-          600: '#059669',
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
         },
-        warning: {
-          50: '#fffbeb',
-          500: '#f59e0b',
-          600: '#d97706',
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
-        danger: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
-      },
-      fontFamily: {
-        sans: [
-          'Inter',
-          'Apple SD Gothic Neo',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'sans-serif',
-        ],
-      },
-      spacing: {
-        '18': '4.5rem',
-        '22': '5.5rem',
-        '88': '22rem',
-        '120': '30rem',
-      },
-      maxWidth: {
-        '8xl': '88rem',
-        '9xl': '96rem',
-      },
-      minWidth: {
-        '72': '18rem',
-        '80': '20rem',
-      },
-      gridTemplateColumns: {
-        // 워크스페이스 레이아웃 전용 그리드
-        'workspace': '260px 1fr',
-        'workspace-full': '260px 1fr 320px',
-      },
-      animation: {
-        'slide-in': 'slideIn 0.2s ease-out',
-        'slide-out': 'slideOut 0.2s ease-out',
-        'fade-in': 'fadeIn 0.15s ease-out',
-        'fade-out': 'fadeOut 0.15s ease-out',
-        'bounce-gentle': 'bounceGentle 1s ease-in-out',
-      },
-      keyframes: {
-        slideIn: {
-          '0%': { transform: 'translateX(100%)' },
-          '100%': { transform: 'translateX(0)' },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
         },
-        slideOut: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(100%)' },
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
         },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+        discord: {
+          bg: '#36393f',
+          sidebar: '#2f3136',
+          hover: '#34373c',
+          active: '#42464d',
+          text: '#dcddde',
+          muted: '#72767d',
+          brand: '#5865f2',
         },
-        fadeOut: {
-          '0%': { opacity: '1' },
-          '100%': { opacity: '0' },
+        slack: {
+          bg: '#ffffff',
+          sidebar: '#3f0e40',
+          hover: '#350d36',
+          active: '#1264a3',
+          text: '#1d1c1d',
+          muted: '#616061',
+          brand: '#4a154b',
         },
-        bounceGentle: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-4px)' },
-        },
-      },
-      boxShadow: {
-        'soft': '0 2px 8px rgba(0, 0, 0, 0.04)',
-        'medium': '0 4px 12px rgba(0, 0, 0, 0.08)',
-        'strong': '0 8px 24px rgba(0, 0, 0, 0.12)',
       },
       borderRadius: {
-        'xl': '0.75rem',
-        '2xl': '1rem',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      keyframes: {
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
+        'slide-in-from-top': {
+          from: { transform: 'translateY(-100%)' },
+          to: { transform: 'translateY(0)' },
+        },
+        'slide-in-from-bottom': {
+          from: { transform: 'translateY(100%)' },
+          to: { transform: 'translateY(0)' },
+        },
+        'slide-in-from-left': {
+          from: { transform: 'translateX(-100%)' },
+          to: { transform: 'translateX(0)' },
+        },
+        'slide-in-from-right': {
+          from: { transform: 'translateX(100%)' },
+          to: { transform: 'translateX(0)' },
+        },
+      },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'slide-in-from-top': 'slide-in-from-top 0.3s ease-out',
+        'slide-in-from-bottom': 'slide-in-from-bottom 0.3s ease-out',
+        'slide-in-from-left': 'slide-in-from-left 0.3s ease-out',
+        'slide-in-from-right': 'slide-in-from-right 0.3s ease-out',
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-  ],
+  plugins: [],
 }
+
