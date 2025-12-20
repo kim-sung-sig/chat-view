@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 폰트 임포트 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  /* 전역 스타일 리셋 */
+  html {
+    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans;
+  }
+
+  /* 다크 모드 */
+  .dark body {
+    @apply bg-workspace-bg text-workspace-text;
+  }
+}
+
+@layer components {
+  /* ============================================
+     Button 컴포넌트 스타일
+     ============================================ */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium
+           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500
+           active:bg-brand-800;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500
+           active:bg-gray-400;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-gray-500;
+  }
+
+  .btn-danger {
+    @apply bg-danger-500 text-white hover:bg-danger-600 focus:ring-danger-500
+           active:bg-danger-700;
+  }
+
+  /* 버튼 크기 변형 */
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .btn-md {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* ============================================
+     Input 컴포넌트 스타일
+     ============================================ */
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
+           bg-white text-gray-900 placeholder-gray-400
+           focus:ring-2 focus:ring-brand-500 focus:border-transparent
+           outline-none transition-shadow duration-200
+           disabled:bg-gray-100 disabled:cursor-not-allowed;
+  }
+
+  .input-error {
+    @apply border-danger-500 focus:ring-danger-500;
+  }
+
+  /* ============================================
+     Sidebar 컴포넌트 스타일
+     ============================================ */
+  .sidebar-item {
+    @apply flex items-center gap-2 px-3 py-1.5 rounded-md text-sm
+           text-gray-700 hover:bg-gray-100 cursor-pointer
+           transition-colors duration-150;
+  }
+
+  .sidebar-item.active {
+    @apply bg-brand-50 text-brand-700 font-medium;
+  }
+
+  .sidebar-item:hover {
+    @apply bg-gray-100;
+  }
+
+  /* 다크 모드 사이드바 */
+  .dark .sidebar-item {
+    @apply text-workspace-text hover:bg-workspace-hover;
+  }
+
+  .dark .sidebar-item.active {
+    @apply bg-workspace-active text-white;
+  }
+
+  /* ============================================
+     Message 컴포넌트 스타일
+     ============================================ */
+  .message-container {
+    @apply px-4 py-2 hover:bg-gray-50 transition-colors duration-150;
+  }
+
+  .dark .message-container:hover {
+    @apply bg-workspace-hover;
+  }
+
+  /* ============================================
+     Card 컴포넌트 스타일
+     ============================================ */
+  .card {
+    @apply bg-white rounded-lg border border-gray-200 shadow-soft;
+  }
+
+  .dark .card {
+    @apply bg-workspace-sidebar border-gray-700;
+  }
+
+  /* ============================================
+     Badge 컴포넌트 스타일
+     ============================================ */
+  .badge {
+    @apply inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-full;
+  }
+
+  .badge-primary {
+    @apply bg-brand-100 text-brand-700;
+  }
+
+  .badge-success {
+    @apply bg-success-50 text-success-600;
+  }
+
+  .badge-warning {
+    @apply bg-warning-50 text-warning-600;
+  }
+
+  .badge-danger {
+    @apply bg-danger-50 text-danger-600;
+  }
+}
+
+@layer utilities {
+  /* ============================================
+     스크롤바 스타일
+     ============================================ */
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(203 213 225) transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: rgb(203 213 225);
+    border-radius: 4px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184);
+  }
+
+  /* 스크롤바 숨김 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ============================================
+     텍스트 줄임 유틸리티
+     ============================================ */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     레이아웃 유틸리티
+     ============================================ */
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .absolute-center {
+    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+  }
+}
