@@ -1,15 +1,11 @@
 <template>
-  <div>
-    <NuxtPage />
+  <div class="app-container">
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </div>
 </template>
 
-<script setup lang="ts">
-// 앱 초기화
-const authStore = useAuthStore()
-
-onMounted(() => {
-  // 인증 정보 복원
-  authStore.restoreAuth()
-})
-</script>
+<style>
+/* Reset and base styles will be in assets/css/main.css */
+</style>

@@ -1,39 +1,28 @@
+<script setup lang="ts">
+import ServerSidebar from '~/components/server/ServerSidebar.vue';
+</script>
+
 <template>
-  <div class="h-screen flex bg-background dark:bg-discord-bg overflow-hidden">
-    <!-- 워크스페이스 사이드바 -->
-    <WorkspaceSidebar v-if="showSidebar" />
-
-    <!-- 메인 컨텐츠 영역 -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <!-- 헤더 -->
-      <AppHeader />
-
-      <!-- 메인 컨텐츠 -->
-      <main class="flex-1 overflow-hidden">
-        <slot />
-      </main>
+  <div class="main-layout">
+    <ServerSidebar />
+    <div class="main-content">
+       <slot />
     </div>
-
-    <!-- 오른쪽 패널 (옵션) -->
-    <RightPanel v-if="showRightPanel" />
   </div>
 </template>
 
-<script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useUIStore } from '~/stores/ui'
-
-interface Props {
-  showSidebar?: boolean
-  showRightPanel?: boolean
+<style scoped>
+.main-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  showSidebar: true,
-  showRightPanel: false,
-})
-
-const UIStore = useUIStore()
-
-</script>
-
+.main-content {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  background-color: var(--bg-primary);
+}
+</style>
