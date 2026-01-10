@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import { useDataStore } from '~/store/data';
-import { computed } from 'vue';
 
 const store = useDataStore();
 const servers = computed(() => store.servers);
@@ -9,16 +9,79 @@ const activeServerId = computed(() => store.activeServerId);
 const selectServer = (id: string) => {
   store.setActiveServer(id);
 };
+
+// Drag and Drop Logic
+const draggedId = ref<string | null>(null);
+
+const onDragStart = (e: DragEvent, id: string) => {
+  draggedId.value = id;
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.dropEffect = 'move';
+  }
+};
+
+const onDragOver = (e: DragEvent) => {
+  e.preventDefault(); // Necessary for update
+};
+
+const onDrop = (e: DragEvent, targetId: string) => {
+  e.preventDefault();
+  if (!draggedId.value || draggedId.value === targetId) return;
+
+  const currentOrder = servers.value.map(s => s.id);
+  const fromIndex = currentOrder.indexOf(draggedId.value);
+  const toIndex = currentOrder.indexOf(targetId);
+
+  if (fromIndex !== -1 && toIndex !== -1) {
+    // Reorder locally
+    const newOrder = [...currentOrder];
+    newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, draggedId.value);
+    
+    // Update store
+    store.reorderServers(newOrder);
+  }
+  draggedId.value = null;
+};
+
+const createServer = () => {
+    const name = window.prompt("Enter server name:");
+    if (name) {
+        store.addServer(name);
+    }
+};
 </script>
 
 <template>
   <nav class="server-sidebar">
+    <!-- Home Button -->
+    <div 
+      class="server-icon-wrapper"
+      :class="{ 'active': activeServerId === 'home' }"
+      @click="selectServer('home')"
+    >
+      <div class="pill"></div>
+      <img 
+        src="https://placehold.co/100/5865F2/white?text=DM" 
+        alt="Home" 
+        class="server-icon home-icon"
+      />
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Draggable Server List -->
     <div 
       v-for="server in servers" 
       :key="server.id"
       class="server-icon-wrapper"
-      :class="{ 'active': activeServerId === server.id }"
+      :class="{ 'active': activeServerId === server.id, 'dragging': draggedId === server.id }"
       @click="selectServer(server.id)"
+      draggable="true"
+      @dragstart="onDragStart($event, server.id)"
+      @dragover="onDragOver"
+      @drop="onDrop($event, server.id)"
     >
       <div class="pill"></div>
       <img 
@@ -26,16 +89,21 @@ const selectServer = (id: string) => {
         :alt="server.name" 
         class="server-icon"
       />
+      <!-- Unread Badge -->
+      <div class="badge" v-if="server.unreadCount && server.unreadCount > 0">
+        {{ server.unreadCount }}
+      </div>
     </div>
     
-    <!-- Add Server Button Mock -->
-    <div class="server-icon-wrapper add-server">
+    <!-- Add Server Button -->
+    <div class="server-icon-wrapper add-server" @click="createServer">
       <div class="server-icon flex items-center justify-center">
         <span>+</span>
       </div>
     </div>
   </nav>
 </template>
+
 
 <style scoped>
 .server-sidebar {
@@ -49,6 +117,15 @@ const selectServer = (id: string) => {
   gap: 8px;
 }
 
+.separator {
+  height: 2px;
+  width: 32px;
+  border-radius: 1px;
+  background-color: var(--bg-hover);
+  margin-bottom: 4px;
+}
+
+
 .server-icon-wrapper {
   position: relative;
   width: 48px;
@@ -58,6 +135,10 @@ const selectServer = (id: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.server-icon-wrapper.dragging {
+  opacity: 0.5;
 }
 
 .server-icon {
@@ -113,5 +194,24 @@ const selectServer = (id: string) => {
 .add-server:hover .server-icon {
   background-color: var(--c-success);
   color: white;
+}
+
+/* Badge */
+.badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background-color: var(--c-danger);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  height: 22px; 
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  border: 4px solid var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

@@ -71,3 +71,32 @@ html, body {
 .w-full { width: 100%; }
 .text-header { color: var(--c-text-header); font-weight: 600; }
 .text-muted { color: var(--c-text-muted); }
+
+/* Mobile & Webview Responsive Utilities */
+.mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
+
+@media (max-width: 768px) {
+  .mobile-only { display: flex !important; }
+  .desktop-only { display: none !important; }
+}
+
+/* Mobile Overlay Backdrop */
+.mobile-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40; /* Above regular content */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+

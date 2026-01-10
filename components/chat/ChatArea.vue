@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted } from 'vue';
 import { useDataStore } from '~/store/data';
+import { useUIStore } from '~/store/ui';
 import MessageItem from './MessageItem.vue';
 
 const store = useDataStore();
+const uiStore = useUIStore();
 const activeChannel = computed(() => {
   const c = store.channels.find(c => c.id === store.activeChannelId);
   return c || { name: 'unknown', type: 'text' };
@@ -14,6 +16,7 @@ const users = computed(() => store.users);
 
 const inputVal = ref('');
 const messagesEndRef = ref<HTMLElement | null>(null);
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
 const scrollToBottom = async () => {
   await nextTick();
@@ -33,15 +36,38 @@ const handleSend = () => {
   if (!inputVal.value.trim()) return;
   store.sendMessage(inputVal.value);
   inputVal.value = '';
+  
+  nextTick(() => {
+    if (textareaRef.value) {
+      textareaRef.value.style.height = 'auto';
+    }
+  });
 };
 
-// Auto focus logic could be added here
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+};
+
+const adjustHeight = (e: Event) => {
+  const target = e.target as HTMLTextAreaElement;
+  target.style.height = 'auto';
+  target.style.height = `${Math.min(target.scrollHeight, 300)}px`; // Max height cap
+};
 </script>
 
 <template>
   <main class="chat-area">
     <header class="chat-header">
-      <div class="header-icon">#</div>
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn mobile-only" @click="uiStore.toggleMobileSidebar()">
+        ☰
+      </button>
+
+      <div class="header-icon">{{ activeChannel.type === 'dm' ? '@' : '#' }}</div>
       <h3 class="header-title">{{ activeChannel.name }}</h3>
       <div class="header-desc" v-if="activeChannel.type === 'text'">
         <!-- Description could go here -->
@@ -50,10 +76,11 @@ const handleSend = () => {
 
     <div class="messages-list">
       <div class="empty-channel-placeholder" v-if="messages.length === 0">
-        <div class="hashtag-circle">#</div>
-        <h1>Welcome to #{{ activeChannel.name }}!</h1>
-        <p>This is the start of the #{{ activeChannel.name }} channel.</p>
+        <div class="hashtag-circle">{{ activeChannel.type === 'dm' ? '@' : '#' }}</div>
+        <h1>Welcome to {{ activeChannel.type === 'dm' ? '' : '#' }}{{ activeChannel.name }}!</h1>
+        <p>This is the start of the {{ activeChannel.type === 'dm' ? 'conversation with' : 'channel #' }} {{ activeChannel.name }}.</p>
       </div>
+
       
       <MessageItem 
         v-for="msg in messages" 
@@ -67,13 +94,16 @@ const handleSend = () => {
     <div class="input-area">
       <div class="input-wrapper">
         <div class="upload-btn">+</div>
-        <input 
+        <textarea 
+          ref="textareaRef"
           v-model="inputVal"
-          @keydown.enter.prevent="handleSend"
-          type="text" 
+          @keydown="handleKeydown"
+          @input="adjustHeight"
+          rows="1"
           :placeholder="`Message #${activeChannel.name}`"
           class="chat-input"
-        />
+        ></textarea>
+
         <div class="emoji-btn">😊</div>
       </div>
     </div>
@@ -96,6 +126,25 @@ const handleSend = () => {
   align-items: center;
   box-shadow: 0 1px 0 rgba(0,0,0,0.2);
   flex-shrink: 0;
+  background-color: var(--bg-primary); /* Ensure bg is opaque */
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  color: var(--c-text-normal);
+  font-size: 24px;
+  cursor: pointer;
+  margin-right: 16px;
+  padding: 0;
+  display: none; /* Hidden by default (desktop) */
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
 }
 
 .header-icon {
@@ -107,7 +156,11 @@ const handleSend = () => {
   color: var(--c-text-header);
   font-weight: 700;
   margin-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 
 .messages-list {
   flex: 1;
@@ -151,8 +204,9 @@ const handleSend = () => {
   background-color: #383a40;
   border-radius: 8px;
   display: flex;
-  align-items: center;
-  padding: 0 16px;
+  /* Align items to bottom so icons stay at bottom when textarea grows */
+  align-items: flex-end; 
+  padding: 10px 16px;
 }
 
 .chat-input {
@@ -160,9 +214,23 @@ const handleSend = () => {
   background: transparent;
   border: none;
   color: var(--c-text-normal);
-  padding: 11px 0;
+  /* Remove fixed padding, rely on wrapper or minimal padding */
+  padding: 0;
   font-size: 1rem;
   outline: none;
+  resize: none;
+  max-height: 50vh;
+  min-height: 24px;
+  line-height: 1.5;
+  font-family: inherit;
+}
+
+/* Scrollbar for textarea */
+.chat-input::-webkit-scrollbar {
+  width: 4px;
+}
+.chat-input::-webkit-scrollbar-thumb {
+  background-color: #202225;
 }
 
 .upload-btn, .emoji-btn {
@@ -170,6 +238,8 @@ const handleSend = () => {
   cursor: pointer;
   font-size: 20px;
   margin: 0 16px 0 0;
+  /* Adjust line-height or padding to align with text baseline */
+  line-height: 24px; 
 }
 .emoji-btn { margin: 0 0 0 16px; }
 
@@ -177,3 +247,4 @@ const handleSend = () => {
   color: var(--c-text-normal);
 }
 </style>
+

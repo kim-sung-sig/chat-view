@@ -1,16 +1,47 @@
 <script setup lang="ts">
-import { useDataStore } from '~/store/data';
 import { computed } from 'vue';
+import UserPanel from '~/components/common/UserPanel.vue';
+import { useDataStore } from '~/store/data';
+import { useUIStore } from '~/store/ui';
 
 const store = useDataStore();
+const uiStore = useUIStore();
 const activeServer = computed(() => store.getActiveServer);
-const channels = computed(() => store.channels); // Mock: all channels
+const activeServerId = computed(() => store.activeServerId);
+
+// Get channels for current server
+const channels = computed(() => {
+    if (activeServerId.value) {
+        return store.getServerChannels(activeServerId.value);
+    }
+    return [];
+});
+
 const activeChannelId = computed(() => store.activeChannelId);
-const currentUser = computed(() => store.currentUser);
 
 const selectChannel = (id: string) => {
   store.setActiveChannel(id);
+  // Auto-close on mobile selection
+  if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+    uiStore.closeMobileSidebar();
+  }
 };
+
+const createChannel = (type: 'text' | 'voice') => {
+    if (!activeServerId.value) return;
+    const name = prompt(`Enter ${type} channel name:`);
+    if (name) {
+        store.addChannel(activeServerId.value, name, type);
+    }
+};
+
+const deleteChannel = (e: Event, id: string) => {
+    e.stopPropagation(); // Prevent selection
+    if (confirm('Delete this channel?')) {
+        store.deleteChannel(id);
+    }
+};
+
 </script>
 
 <template>
@@ -20,37 +51,51 @@ const selectChannel = (id: string) => {
     </header>
     
     <div class="channels-scroll">
-      <div 
-        v-for="channel in channels" 
-        :key="channel.id"
-        class="channel-item"
-        :class="{ 'active': activeChannelId === channel.id }"
-        @click="selectChannel(channel.id)"
-      >
-        <span class="channel-hash" v-if="channel.type === 'text'">#</span>
-        <span class="channel-voice-icon" v-else>🔊</span>
-        <span class="channel-name">{{ channel.name }}</span>
+      <!-- Text Channels Category -->
+      <div class="category">
+        <div class="category-header">
+            <span>TEXT CHANNELS</span>
+            <button class="add-btn" @click="createChannel('text')">+</button>
+        </div>
+        <div 
+            v-for="channel in channels.filter(c => c.type === 'text')" 
+            :key="channel.id"
+            class="channel-item"
+            :class="{ 'active': activeChannelId === channel.id }"
+            @click="selectChannel(channel.id)"
+        >
+            <span class="channel-hash">#</span>
+            <span class="channel-name">{{ channel.name }}</span>
+            <button class="delete-btn" @click="deleteChannel($event, channel.id)">×</button>
+        </div>
       </div>
+
+       <!-- Voice Channels Category -->
+       <div class="category">
+        <div class="category-header">
+            <span>VOICE CHANNELS</span>
+            <button class="add-btn" @click="createChannel('voice')">+</button>
+        </div>
+        <div 
+            v-for="channel in channels.filter(c => c.type === 'voice')" 
+            :key="channel.id"
+            class="channel-item"
+            :class="{ 'active': activeChannelId === channel.id }"
+            @click="selectChannel(channel.id)"
+        >
+            <span class="channel-voice-icon">🔊</span>
+            <span class="channel-name">{{ channel.name }}</span>
+             <button class="delete-btn" @click="deleteChannel($event, channel.id)">×</button>
+        </div>
+      </div>
+
     </div>
 
-    <div class="user-panel" v-if="currentUser">
-      <div class="user-avatar-wrapper">
-         <img :src="currentUser.avatarUrl" class="user-avatar" />
-         <div class="status-indicator" :class="currentUser.status"></div>
-      </div>
-      <div class="user-info">
-        <div class="username">{{ currentUser.username }}</div>
-        <div class="discriminator">#{{ currentUser.discriminator }}</div>
-      </div>
-      <div class="user-actions">
-        <!-- Icons -->
-        <button class="icon-btn">🎤</button>
-        <button class="icon-btn">🎧</button>
-        <button class="icon-btn">⚙️</button>
-      </div>
-    </div>
+    <UserPanel />
   </aside>
 </template>
+
+
 
 <style scoped>
 .channel-sidebar {
@@ -88,6 +133,33 @@ const selectChannel = (id: string) => {
   overflow-y: auto;
 }
 
+/* Categories */
+.category {
+    margin-bottom: 20px;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8px 4px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-text-muted);
+    cursor: default;
+}
+.category-header:hover { color: var(--c-text-header); }
+
+.add-btn {
+    background: none;
+    border: none;
+    color: var(--c-text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+}
+.add-btn:hover { color: var(--c-text-header); }
+
 .channel-item {
   display: flex;
   align-items: center;
@@ -96,6 +168,7 @@ const selectChannel = (id: string) => {
   border-radius: 4px;
   cursor: pointer;
   color: var(--c-text-muted);
+  position: relative;
 }
 
 .channel-item:hover {
@@ -116,64 +189,27 @@ const selectChannel = (id: string) => {
 
 .channel-name {
   font-weight: 500;
-}
-
-/* User Panel */
-.user-panel {
-  height: 52px;
-  background-color: #232428;
-  padding: 0 8px;
-  display: flex;
-  align-items: center;
-}
-
-.user-avatar-wrapper {
-  position: relative;
-  margin-right: 8px;
-}
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: gray;
-}
-.status-indicator {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid #232428;
-}
-.status-indicator.online { background-color: var(--c-success); }
-
-.user-info {
   flex: 1;
-  font-size: 12px;
-  line-height: 1.2;
-}
-.username {
-  font-weight: 600;
-  color: var(--c-text-header);
-}
-.discriminator {
-  color: var(--c-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.user-actions {
-  display: flex;
+.delete-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--c-text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
 }
-.icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  color: var(--c-text-normal);
-  font-size: 16px;
+.channel-item:hover .delete-btn {
+    display: block;
 }
-.icon-btn:hover {
-  background-color: var(--bg-hover);
+.delete-btn:hover {
+    color: var(--c-danger);
 }
+
+
 </style>
