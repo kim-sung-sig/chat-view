@@ -20,13 +20,18 @@ export default defineNuxtConfig({
                 { name: 'theme-color', content: '#5865F2' }
             ],
             link: [
-                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+                { rel: 'manifest', href: '/manifest.webmanifest' },
+                { rel: 'apple-touch-icon', href: '/pwa-192x192.png' },
+                { rel: 'mask-icon', href: '/icon.svg', color: '#5865F2' }
             ]
         }
     },
     pwa: {
         registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'favicon.png', 'icon.svg'],
         manifest: {
+            id: '/',
             name: 'Discode',
             short_name: 'Discode',
             description: 'A modern Discord clone built with Nuxt 3',
