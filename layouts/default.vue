@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import SettingsModal from '~/components/common/SettingsModal.vue';
+import PWAInstallPrompt from '~/components/common/PWAInstallPrompt.vue';
 import ServerSidebar from '~/components/server/ServerSidebar.vue';
 import { useUIStore } from '~/store/ui';
 
@@ -9,7 +10,8 @@ const uiStore = useUIStore();
 <template>
   <div class="main-layout">
     <SettingsModal v-if="uiStore.showSettings" />
-    
+    <PWAInstallPrompt />
+
     <!-- Mobile Backdrop -->
     <div 
       class="mobile-backdrop" 
@@ -38,6 +40,24 @@ const uiStore = useUIStore();
   position: relative;
 }
 
+.mobile-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.mobile-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
 
 .sidebar-wrapper {
   display: flex;
@@ -58,6 +78,10 @@ const uiStore = useUIStore();
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .mobile-backdrop {
+    display: block;
+  }
+
   .sidebar-wrapper {
     position: absolute;
     top: 0;
@@ -72,4 +96,3 @@ const uiStore = useUIStore();
   }
 }
 </style>
-
