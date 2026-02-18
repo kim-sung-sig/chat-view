@@ -26,16 +26,27 @@ export default defineNuxtConfig({
                 { name: 'theme-color', content: '#5865F2' }
             ],
             link: [
-                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+                { rel: 'manifest', href: '/manifest.webmanifest' },
+                { rel: 'apple-touch-icon', href: '/pwa-192x192.png' },
+                { rel: 'mask-icon', href: '/icon.svg', color: '#5865F2' }
             ]
         }
     },
     pwa: {
         registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'favicon.png', 'icon.svg'],
         manifest: {
+<<<<<<< HEAD
             name: 'Chat Platform',
             short_name: 'Chat',
             description: 'A modern chat platform built with Nuxt 3',
+=======
+            id: '/',
+            name: 'Discode',
+            short_name: 'Discode',
+            description: 'A modern Discord clone built with Nuxt 3',
+>>>>>>> ba466b48be5d5ff0e5590d0f68d79212d248765f
             theme_color: '#5865F2',
             background_color: '#202225',
             display: 'standalone',
