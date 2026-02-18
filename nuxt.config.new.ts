@@ -1,4 +1,7 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+/**
+ * Runtime Configuration
+ * 환경 변수 설정
+ */
 export default defineNuxtConfig({
     modules: [
         '@pinia/nuxt',
@@ -104,13 +107,12 @@ export default defineNuxtConfig({
         },
         client: {
             installPrompt: true,
-            periodicSyncForUpdates: 3600 // 1 hour
+            periodicSyncForUpdates: 3600
         },
         devOptions: {
             enabled: true,
-            suppressWarnings: true,
-            navigateFallbackAllowlist: [/^\/$/],
             type: 'module'
         }
-    } as any
+    },
+    compatibilityDate: '2025-01-16'
 })

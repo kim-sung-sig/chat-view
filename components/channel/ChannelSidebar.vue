@@ -1,47 +1,71 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import UserPanel from '~/components/common/UserPanel.vue';
+import { useChatStore } from '~/store/chat';
 import { useDataStore } from '~/store/data';
 import { useUIStore } from '~/store/ui';
 
+const chatStore = useChatStore();
 const store = useDataStore();
 const uiStore = useUIStore();
+
 const activeServer = computed(() => store.getActiveServer);
 const activeServerId = computed(() => store.activeServerId);
 
-// Get channels for current server
+// Get channels - 실제 API 데이터 우선 사용
 const channels = computed(() => {
+    // 실제 API에서 로드된 채널이 있으면 그것을 사용
+    if (chatStore.channels.length > 0) {
+        return chatStore.channels;
+    }
+    
+    // 없으면 기존 mock 데이터 사용
     if (activeServerId.value) {
         return store.getServerChannels(activeServerId.value);
     }
     return [];
 });
 
-const activeChannelId = computed(() => store.activeChannelId);
+const activeChannelId = computed(() => chatStore.activeChannelId || store.activeChannelId);
 
-const selectChannel = (id: string) => {
-  store.setActiveChannel(id);
-  // Auto-close on mobile selection
-  if (typeof window !== 'undefined' && window.innerWidth <= 768) {
-    uiStore.closeMobileSidebar();
-  }
+const selectChannel = async (id: string) => {
+    // 새로운 chat store 사용
+    await chatStore.setActiveChannel(id);
+    
+    // 기존 store도 업데이트 (호환성)
+    store.setActiveChannel(id);
+    
+    // Auto-close on mobile selection
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+        uiStore.closeMobileSidebar();
+    }
 };
 
 const createChannel = (type: 'text' | 'voice') => {
     if (!activeServerId.value) return;
     const name = prompt(`Enter ${type} channel name:`);
     if (name) {
+        // TODO: API 연결
         store.addChannel(activeServerId.value, name, type);
     }
 };
 
 const deleteChannel = (e: Event, id: string) => {
-    e.stopPropagation(); // Prevent selection
+    e.stopPropagation();
     if (confirm('Delete this channel?')) {
+        // TODO: API 연결
         store.deleteChannel(id);
     }
 };
 
+onMounted(async () => {
+    // 채널 목록 로드
+    try {
+        await chatStore.loadMyChannels();
+    } catch (error) {
+        console.error('Failed to load channels:', error);
+    }
+});
 </script>
 
 <template>

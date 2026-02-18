@@ -1,5 +1,5 @@
 export type UserStatus = 'online' | 'idle' | 'dnd' | 'offline';
-export type ChannelType = 'text' | 'voice' | 'dm';
+export type ChannelType = 'text' | 'voice' | 'dm' | 'DIRECT' | 'GROUP' | 'PUBLIC' | 'PRIVATE';
 
 export interface User {
     id: string;
@@ -16,6 +16,8 @@ export interface Message {
     channelId: string;
     timestamp: Date;
     edited?: boolean;
+    messageType?: 'TEXT' | 'IMAGE' | 'MIXED';
+    imageUrls?: string[];
 }
 
 export interface Channel {
@@ -25,6 +27,8 @@ export interface Channel {
     categoryId?: string;
     unreadCount?: number;
     serverId?: string;
+    description?: string;
+    memberCount?: number;
 }
 
 export interface Server {
@@ -35,11 +39,20 @@ export interface Server {
     unreadCount?: number;
 }
 
-
 export type RelationshipType = 'friend' | 'pending_incoming' | 'pending_outgoing' | 'blocked';
 
 export interface Relationship {
     userId: string;
     type: RelationshipType;
+}
+
+// API Response 타입
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    error?: {
+        code: string;
+        message: string;
+    };
 }
 

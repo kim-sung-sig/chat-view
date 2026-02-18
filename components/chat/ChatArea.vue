@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch, onMounted } from 'vue';
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue';
+import { useChatStore } from '~/store/chat';
 import { useDataStore } from '~/store/data';
 import { useUIStore } from '~/store/ui';
 import MessageItem from './MessageItem.vue';
 
+const chatStore = useChatStore();
 const store = useDataStore();
 const uiStore = useUIStore();
-const activeChannel = computed(() => {
-  const c = store.channels.find(c => c.id === store.activeChannelId);
-  return c || { name: 'unknown', type: 'text' };
-});
 
-const messages = computed(() => store.getCurrentChannelMessages);
+const activeChannel = computed(() => chatStore.getActiveChannel || { name: 'unknown', type: 'text' });
+const messages = computed(() => chatStore.getCurrentChannelMessages);
 const users = computed(() => store.users);
 
 const inputVal = ref('');
 const messagesEndRef = ref<HTMLElement | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const isSending = computed(() => chatStore.isSendingMessage);
 
 const scrollToBottom = async () => {
   await nextTick();
@@ -26,24 +26,35 @@ const scrollToBottom = async () => {
 };
 
 watch(() => messages.value.length, scrollToBottom);
-watch(() => store.activeChannelId, scrollToBottom);
+watch(() => chatStore.activeChannelId, async () => {
+  await scrollToBottom();
+});
 
 onMounted(() => {
+  chatStore.initializeServices();
   scrollToBottom();
 });
 
-const handleSend = () => {
-  if (!inputVal.value.trim()) return;
-  store.sendMessage(inputVal.value);
-  inputVal.value = '';
-  
-  nextTick(() => {
-    if (textareaRef.value) {
-      textareaRef.value.style.height = 'auto';
-    }
-  });
-};
+onUnmounted(() => {
+  chatStore.cleanup();
+});
 
+const handleSend = async () => {
+  if (!inputVal.value.trim() || isSending.value) return;
+  
+  try {
+    await chatStore.sendMessage(inputVal.value);
+    inputVal.value = '';
+    
+    nextTick(() => {
+      if (textareaRef.value) {
+        textareaRef.value.style.height = 'auto';
+      }
+    });
+  } catch (error) {
+    console.error('Failed to send message:', error);
+  }
+};
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -55,7 +66,7 @@ const handleKeydown = (e: KeyboardEvent) => {
 const adjustHeight = (e: Event) => {
   const target = e.target as HTMLTextAreaElement;
   target.style.height = 'auto';
-  target.style.height = `${Math.min(target.scrollHeight, 300)}px`; // Max height cap
+  target.style.height = `${Math.min(target.scrollHeight, 300)}px`;
 };
 </script>
 
