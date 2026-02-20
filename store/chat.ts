@@ -139,25 +139,130 @@ export const useChatStore = defineStore('chat', {
         },
 
         /**
-         * 메시지 전송
+         * 메시지 전송 (낙관적 업데이트 지원)
          */
-        async sendMessage(content: string) {
-            if (!this.messageService || !this.activeChannelId || !content.trim()) return;
+        async sendMessage(content: string, type: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT', mediaUrl?: string) {
+            if (!this.activeChannelId) return;
+            if (type === 'TEXT' && !content.trim()) return;
+
+            const currentUser = this.currentUser;
+            const channelId = this.activeChannelId;
+
+            // 낙관적 업데이트: 즉시 로컬에 추가
+            const tempId = `temp-${Date.now()}`;
+            const optimisticMsg = {
+                id: tempId,
+                content: content.trim(),
+                authorId: currentUser?.id || 'me',
+                channelId,
+                timestamp: new Date(),
+                messageType: type,
+                imageUrls: mediaUrl ? [mediaUrl] : undefined,
+                isPending: true,
+            };
+            if (!this.messages[channelId]) this.messages[channelId] = [];
+            this.messages[channelId].push(optimisticMsg);
 
             this.isSendingMessage = true;
             try {
-                await this.messageService.sendMessage({
-                    channelId: this.activeChannelId,
-                    messageType: 'TEXT',
-                    textContent: content.trim()
-                });
-                
-                // WebSocket으로 메시지가 브로드캐스트되므로 여기서는 추가하지 않음
+                if (this.messageService) {
+                    await this.messageService.sendMessage({
+                        channelId,
+                        messageType: type,
+                        textContent: content.trim() || undefined,
+                        imageUrls: mediaUrl ? [mediaUrl] : undefined,
+                    });
+                }
+                // 낙관적 메시지 pending 해제
+                const idx = this.messages[channelId]?.findIndex(m => m.id === tempId);
+                if (idx !== undefined && idx >= 0 && this.messages[channelId]) {
+                    this.messages[channelId][idx].isPending = false;
+                }
             } catch (error) {
+                // 실패 시 낙관적 메시지 제거
+                if (this.messages[channelId]) {
+                    this.messages[channelId] = this.messages[channelId].filter(m => m.id !== tempId);
+                }
                 console.error('Failed to send message:', error);
                 throw error;
             } finally {
                 this.isSendingMessage = false;
+            }
+        },
+
+        /**
+         * 메시지 편집
+         */
+        async editMessage(messageId: string, newContent: string) {
+            const channelId = this.activeChannelId;
+            if (!channelId) return;
+
+            // 낙관적 업데이트
+            const msg = this.messages[channelId]?.find(m => m.id === messageId);
+            if (msg) {
+                const old = msg.content;
+                msg.content = newContent;
+                msg.edited = true;
+                msg.editedAt = new Date();
+                try {
+                    if (this.messageService) await this.messageService.editMessage(messageId, newContent);
+                } catch (e) {
+                    msg.content = old; // 롤백
+                    throw e;
+                }
+            }
+        },
+
+        /**
+         * 메시지 삭제
+         */
+        async deleteMessage(messageId: string) {
+            const channelId = this.activeChannelId;
+            if (!channelId) return;
+            // 낙관적 삭제
+            if (this.messages[channelId]) {
+                const before = [...this.messages[channelId]];
+                this.messages[channelId] = this.messages[channelId].filter(m => m.id !== messageId);
+                try {
+                    if (this.messageService) await this.messageService.deleteMessage(messageId);
+                } catch (e) {
+                    this.messages[channelId] = before; // 롤백
+                    throw e;
+                }
+            }
+        },
+
+        /**
+         * 리액션 토글
+         */
+        async toggleReaction(messageId: string, emoji: string) {
+            const channelId = this.activeChannelId;
+            if (!channelId) return;
+            const msg = this.messages[channelId]?.find(m => m.id === messageId);
+            if (!msg) return;
+
+            if (!msg.reactions) msg.reactions = {};
+            const existing = msg.reactions[emoji];
+            const myId = this.currentUser?.id || 'me';
+
+            if (existing?.me) {
+                existing.count -= 1;
+                existing.userIds = existing.userIds.filter(id => id !== myId);
+                existing.me = false;
+                if (existing.count <= 0) delete msg.reactions[emoji];
+            } else {
+                msg.reactions[emoji] = {
+                    emoji,
+                    count: (existing?.count || 0) + 1,
+                    userIds: [...(existing?.userIds || []), myId],
+                    me: true,
+                };
+            }
+
+            try {
+                if (this.messageService) await this.messageService.toggleReaction(messageId, emoji);
+            } catch (e) {
+                console.error('Reaction failed:', e);
             }
         },
 

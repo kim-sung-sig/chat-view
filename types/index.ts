@@ -1,12 +1,31 @@
 export type UserStatus = 'online' | 'idle' | 'dnd' | 'offline';
 export type ChannelType = 'text' | 'voice' | 'dm' | 'DIRECT' | 'GROUP' | 'PUBLIC' | 'PRIVATE';
+export type MessageType = 'TEXT' | 'IMAGE' | 'FILE' | 'VIDEO' | 'AUDIO' | 'SYSTEM' | 'MIXED';
+export type RelationshipType = 'friend' | 'pending_incoming' | 'pending_outgoing' | 'blocked';
 
 export interface User {
     id: string;
     username: string;
-    discriminator: string; // The #1234
+    discriminator: string;
     avatarUrl?: string;
     status: UserStatus;
+    customStatus?: string;
+}
+
+export interface Reaction {
+    emoji: string;
+    count: number;
+    userIds: string[];
+    me: boolean;
+}
+
+export interface MessageAttachment {
+    url: string;
+    name: string;
+    size?: number;
+    mimeType?: string;
+    width?: number;
+    height?: number;
 }
 
 export interface Message {
@@ -15,9 +34,22 @@ export interface Message {
     authorId: string;
     channelId: string;
     timestamp: Date;
+    editedAt?: Date;
     edited?: boolean;
-    messageType?: 'TEXT' | 'IMAGE' | 'MIXED';
+    messageType?: MessageType;
     imageUrls?: string[];
+    attachments?: MessageAttachment[];
+    reactions?: Record<string, Reaction>;
+    replyToId?: string;
+    isPending?: boolean;
+}
+
+export interface Category {
+    id: string;
+    name: string;
+    serverId: string;
+    collapsed: boolean;
+    position: number;
 }
 
 export interface Channel {
@@ -26,9 +58,14 @@ export interface Channel {
     type: ChannelType;
     categoryId?: string;
     unreadCount?: number;
+    mentionCount?: number;
     serverId?: string;
     description?: string;
     memberCount?: number;
+    lastActivityAt?: Date;
+    notificationEnabled?: boolean;
+    favorite?: boolean;
+    pinned?: boolean;
 }
 
 export interface Server {
@@ -37,13 +74,15 @@ export interface Server {
     iconUrl?: string;
     ownerId: string;
     unreadCount?: number;
+    mentionCount?: number;
 }
 
-export type RelationshipType = 'friend' | 'pending_incoming' | 'pending_outgoing' | 'blocked';
-
 export interface Relationship {
+    id?: string;
     userId: string;
     type: RelationshipType;
+    nickname?: string;
+    favorite?: boolean;
 }
 
 // API Response 타입
@@ -56,3 +95,21 @@ export interface ApiResponse<T> {
     };
 }
 
+// 페이지네이션
+export interface PagedResponse<T> {
+    data: T[];
+    nextCursor?: string;
+    hasMore: boolean;
+}
+
+// 알림 설정
+export interface NotificationSettings {
+    enabled: boolean;
+    mentions: boolean;
+    allMessages: boolean;
+    sounds: boolean;
+}
+
+// 테마
+export type Theme = 'dark' | 'light' | 'oled';
+export type MessageDensity = 'comfortable' | 'compact';

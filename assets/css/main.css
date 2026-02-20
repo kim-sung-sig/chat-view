@@ -1,54 +1,80 @@
-:root {
-  /* Discord-like color scheme */
+/* ── 다크 테마 (기본) ─────────────────────────── */
+:root, [data-theme="dark"] {
   --bg-primary: #313338;
   --bg-secondary: #2b2d31;
   --bg-tertiary: #1e1f22;
-  --bg-accent: #5865F2; /* Discord Blurple */
+  --bg-floating: #18191c;
+  --bg-channeltextarea: #383a40;
+  --bg-modifier-hover: #ffffff0f;
+  --bg-modifier-accent: #3a3c40;
+  --bg-accent: #5865F2;
   --bg-accent-hover: #4752c4;
   --bg-hover: #3f4147;
-  
-  /* Text colors */
+
   --c-text-normal: #dbdee1;
   --c-text-header: #f2f3f5;
   --c-text-muted: #949ba4;
   --c-text-link: #00aff4;
-  
-  /* Status colors */
+  --c-icon-normal: #b5bac1;
+  --c-icon-interactive-hover: #dcddde;
+
   --c-danger: #da373c;
   --c-success: #23a559;
   --c-warning: #faa61a;
-  
-  /* Brand colors */
+
+  --brand-experiment: #5865F2;
   --c-brand: #5865F2;
   --c-brand-hover: #4752c4;
-  
-  /* Status indicators */
+
   --c-online: #23a559;
   --c-idle: #f0b232;
   --c-dnd: #da373c;
   --c-offline: #80848e;
-  
-  /* Typography */
+
   --font-primary: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-code: 'Consolas', 'Courier New', monospace;
-  
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  
-  /* Border radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 9999px;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+
+  --spacing-xs: 4px; --spacing-sm: 8px; --spacing-md: 16px;
+  --spacing-lg: 24px; --spacing-xl: 32px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 16px rgba(0,0,0,0.4);
+}
+
+/* ── 라이트 테마 ──────────────────────────────── */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f2f3f5;
+  --bg-tertiary: #e3e5e8;
+  --bg-floating: #ffffff;
+  --bg-channeltextarea: #ebedef;
+  --bg-modifier-hover: #0000000a;
+  --bg-modifier-accent: #d4d7dc;
+  --bg-hover: #e3e5e8;
+
+  --c-text-normal: #2e3338;
+  --c-text-header: #060607;
+  --c-text-muted: #5c5e66;
+  --c-text-link: #0068e0;
+  --c-icon-normal: #4f5660;
+  --c-icon-interactive-hover: #2e3338;
+}
+
+/* ── OLED 테마 ────────────────────────────────── */
+[data-theme="oled"] {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #111111;
+  --bg-floating: #0d0d0d;
+  --bg-channeltextarea: #1a1a1a;
+  --bg-modifier-hover: #ffffff0d;
+  --bg-modifier-accent: #1f1f1f;
+  --bg-hover: #151515;
+
+  --c-text-normal: #e0e0e0;
+  --c-text-header: #ffffff;
+  --c-text-muted: #888888;
 }
 
 /* Reset */
@@ -127,4 +153,3 @@ html, body {
   opacity: 1;
   pointer-events: auto;
 }
-

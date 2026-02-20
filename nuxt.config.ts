@@ -11,6 +11,8 @@ export default defineNuxtConfig({
     css: [
         '~/assets/css/main.css'
     ],
+    // SSR 전체 비활성화 (SPA 모드) - PWA와 호환
+    ssr: false,
     runtimeConfig: {
         public: {
             apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
@@ -20,7 +22,7 @@ export default defineNuxtConfig({
     app: {
         head: {
             viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
-            title: 'Chat Platform',
+            title: 'Discode',
             meta: [
                 { name: 'description', content: 'A modern chat platform built with Nuxt 3' },
                 { name: 'theme-color', content: '#5865F2' }
@@ -37,16 +39,10 @@ export default defineNuxtConfig({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'favicon.png', 'icon.svg'],
         manifest: {
-<<<<<<< HEAD
-            name: 'Chat Platform',
-            short_name: 'Chat',
-            description: 'A modern chat platform built with Nuxt 3',
-=======
             id: '/',
             name: 'Discode',
             short_name: 'Discode',
             description: 'A modern Discord clone built with Nuxt 3',
->>>>>>> ba466b48be5d5ff0e5590d0f68d79212d248765f
             theme_color: '#5865F2',
             background_color: '#202225',
             display: 'standalone',
@@ -54,74 +50,49 @@ export default defineNuxtConfig({
             scope: '/',
             start_url: '/',
             icons: [
-                {
-                    src: '/pwa-64x64.png',
-                    sizes: '64x64',
-                    type: 'image/png'
-                },
-                {
-                    src: '/pwa-192x192.png',
-                    sizes: '192x192',
-                    type: 'image/png'
-                },
-                {
-                    src: '/pwa-512x512.png',
-                    sizes: '512x512',
-                    type: 'image/png',
-                    purpose: 'any'
-                },
-                {
-                    src: '/maskable-icon-512x512.png',
-                    sizes: '512x512',
-                    type: 'image/png',
-                    purpose: 'maskable'
-                }
+                { src: '/pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+                { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+                { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+                { src: '/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
             ]
         },
         workbox: {
-            navigateFallback: '/',
-            globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+            // SPA 모드: 모든 네비게이션을 index.html로 fallback
+            navigateFallback: '/index.html',
+            navigateFallbackDenylist: [
+                /^\/api\//,       // API 요청 제외
+                /\.(?:png|jpg|jpeg|svg|ico|webp|woff2?)$/  // 정적 파일 제외
+            ],
+            globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
             cleanupOutdatedCaches: true,
+            skipWaiting: true,
+            clientsClaim: true,
             runtimeCaching: [
                 {
-                    urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                    urlPattern: /^https:\/\/placehold\.co\/.*/i,
                     handler: 'CacheFirst',
                     options: {
-                        cacheName: 'google-fonts-cache',
-                        expiration: {
-                            maxEntries: 10,
-                            maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-                        },
-                        cacheableResponse: {
-                            statuses: [0, 200]
-                        }
+                        cacheName: 'avatar-cache',
+                        expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
+                        cacheableResponse: { statuses: [0, 200] }
                     }
                 },
                 {
-                    urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-                    handler: 'CacheFirst',
-                    options: {
-                        cacheName: 'gstatic-fonts-cache',
-                        expiration: {
-                            maxEntries: 10,
-                            maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-                        },
-                        cacheableResponse: {
-                            statuses: [0, 200]
-                        }
-                    }
+                    // API 요청은 캐시하지 않음 (NetworkOnly)
+                    urlPattern: /\/api\/.*/i,
+                    handler: 'NetworkOnly'
                 }
             ]
         },
         client: {
             installPrompt: true,
-            periodicSyncForUpdates: 3600 // 1 hour
+            periodicSyncForUpdates: 3600
         },
         devOptions: {
-            enabled: true,
+            enabled: false,
             suppressWarnings: true,
-            navigateFallbackAllowlist: [/^\/$/],
+            navigateFallbackAllowlist: [/^\//],
             type: 'module'
         }
-    } as any
+    }
 })

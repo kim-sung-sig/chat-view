@@ -209,11 +209,8 @@ export const useDataStore = defineStore('data', {
 
 
         sendFriendRequest(username: string) {
-            // Mock logic: find if user exists in our "db" (this.users)
-            // In real app this would be an API call
             const targetUser = Object.values(this.users).find(u => u.username === username);
             if (targetUser && targetUser.id !== this.currentUser.id) {
-                // Check if already related
                 const existing = this.relationships.find(r => r.userId === targetUser.id);
                 if (!existing) {
                     this.relationships.push({ userId: targetUser.id, type: 'pending_outgoing' });
@@ -228,19 +225,46 @@ export const useDataStore = defineStore('data', {
             }
         },
 
+        rejectFriendRequest(userId: string) {
+            const idx = this.relationships.findIndex(
+                r => r.userId === userId && (r.type === 'pending_incoming' || r.type === 'pending_outgoing')
+            );
+            if (idx !== -1) this.relationships.splice(idx, 1);
+        },
+
+        removeFriend(userId: string) {
+            const idx = this.relationships.findIndex(r => r.userId === userId && r.type === 'friend');
+            if (idx !== -1) this.relationships.splice(idx, 1);
+        },
+
+        blockUser(userId: string) {
+            const rel = this.relationships.find(r => r.userId === userId);
+            if (rel) {
+                rel.type = 'blocked';
+            } else {
+                this.relationships.push({ userId, type: 'blocked' });
+            }
+        },
+
+        unblockUser(userId: string) {
+            const idx = this.relationships.findIndex(r => r.userId === userId && r.type === 'blocked');
+            if (idx !== -1) this.relationships.splice(idx, 1);
+        },
+
+        toggleFavorite(userId: string) {
+            const rel = this.relationships.find(r => r.userId === userId);
+            if (rel) {
+                rel.favorite = !rel.favorite;
+            }
+        },
+
         openDM(userId: string) {
             const user = this.users[userId];
             if (!user) return;
 
-            // Check if DM exists
-            let dm = this.dms.find(d => d.name === user.username); // Simplified matching
-
+            let dm = this.dms.find(d => d.name === user.username);
             if (!dm) {
-                dm = {
-                    id: `dm-${userId}`,
-                    name: user.username,
-                    type: 'dm'
-                };
+                dm = { id: `dm-${userId}`, name: user.username, type: 'dm' };
                 this.dms.push(dm);
             }
 
@@ -249,4 +273,3 @@ export const useDataStore = defineStore('data', {
         }
     }
 });
-

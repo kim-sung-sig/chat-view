@@ -8,9 +8,21 @@ import type { ApiResponse } from '~/types';
 
 export interface SendMessageRequest {
   channelId: string;
-  messageType: 'TEXT' | 'IMAGE' | 'MIXED';
+  messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'MIXED';
   textContent?: string;
   imageUrls?: string[];
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+}
+
+export interface EditMessageRequest {
+  content: string;
+}
+
+export interface ReactionRequest {
+  emoji: string;
 }
 
 export interface MessageResponse {
@@ -94,5 +106,33 @@ export class MessageService {
       `/api/v1/messages/unread-count?channelId=${channelId}`
     );
     return response.data;
+  }
+
+  /**
+   * 메시지 편집
+   */
+  async editMessage(messageId: string, content: string): Promise<MessageResponse> {
+    const response = await this.apiFetch<ApiResponse<MessageResponse>>(
+      `/api/messages/${messageId}`,
+      { method: 'PUT', body: { content } }
+    );
+    return response.data ?? response;
+  }
+
+  /**
+   * 메시지 삭제
+   */
+  async deleteMessage(messageId: string): Promise<void> {
+    await this.apiFetch(`/api/messages/${messageId}`, { method: 'DELETE' });
+  }
+
+  /**
+   * 리액션 추가/토글
+   */
+  async toggleReaction(messageId: string, emoji: string): Promise<void> {
+    await this.apiFetch(`/api/messages/${messageId}/reactions`, {
+      method: 'POST',
+      body: { emoji }
+    });
   }
 }

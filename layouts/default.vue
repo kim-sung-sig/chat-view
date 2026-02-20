@@ -4,6 +4,7 @@ import PWAInstallPrompt from '~/components/common/PWAInstallPrompt.vue';
 import ServerSidebar from '~/components/server/ServerSidebar.vue';
 import { useUIStore } from '~/store/ui';
 
+
 const uiStore = useUIStore();
 </script>
 

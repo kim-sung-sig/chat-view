@@ -2,20 +2,20 @@
 import { computed, ref } from 'vue';
 import { useDataStore } from '~/store/data';
 import { useUIStore } from '~/store/ui';
+import { useAuthStore } from '~/store/auth';
+import type { Theme, MessageDensity } from '~/types';
 
 const uiStore = useUIStore();
 const dataStore = useDataStore();
-const currentUser = computed(() => dataStore.currentUser);
+const authStore = useAuthStore();
+const currentUser = computed(() => authStore.currentUser || dataStore.currentUser);
 
-const activeCategory = ref('My Account');
-const mobileMenuOpen = ref(false); // If true, show sidebar on mobile. If false, show content.
+const activeCategory = ref(uiStore.settingsTab || 'My Account');
+const mobileMenuOpen = ref(false);
 
 const categories = [
     { header: 'USER SETTINGS' },
     { name: 'My Account' },
-    { name: 'Profiles' },
-    { name: 'Privacy & Safety' },
-    { name: 'Family Center' },
     { separator: true },
     { header: 'APP SETTINGS' },
     { name: 'Appearance' },
@@ -26,8 +26,13 @@ const categories = [
 ];
 
 const selectCategory = (name: string) => {
+    if (name === 'Log Out') {
+        close();
+        authStore.logout();
+        return;
+    }
     activeCategory.value = name;
-    mobileMenuOpen.value = false; // Show content on mobile
+    mobileMenuOpen.value = false;
 };
 
 const close = () => {
@@ -105,6 +110,85 @@ const toggleMobileMenu = () => {
                        <div class="val">Not set</div>
                        <button class="btn-secondary">Add</button>
                    </div>
+                    </div>
+                </div>
+
+                <div v-else-if="activeCategory === 'Appearance'">
+                    <h2>외관 설정</h2>
+                    <!-- 테마 선택 -->
+                    <div class="settings-section">
+                      <div class="settings-label">테마</div>
+                      <div class="theme-options">
+                        <button
+                          v-for="t in [{ value: 'dark', label: '🌑 다크' }, { value: 'light', label: '☀️ 라이트' }, { value: 'oled', label: '⚫ OLED' }]"
+                          :key="t.value"
+                          class="theme-btn"
+                          :class="{ active: uiStore.theme === t.value }"
+                          @click="uiStore.setTheme(t.value as any)"
+                        >{{ t.label }}</button>
+                      </div>
+                    </div>
+                    <!-- 메시지 밀도 -->
+                    <div class="settings-section">
+                      <div class="settings-label">메시지 표시</div>
+                      <div class="density-options">
+                        <label class="radio-item">
+                          <input type="radio" v-model="uiStore.messageDensity" value="comfortable" />
+                          여유 있게
+                        </label>
+                        <label class="radio-item">
+                          <input type="radio" v-model="uiStore.messageDensity" value="compact" />
+                          컴팩트
+                        </label>
+                      </div>
+                    </div>
+                    <!-- 폰트 크기 -->
+                    <div class="settings-section">
+                      <div class="settings-label">폰트 크기 ({{ uiStore.fontSize }}px)</div>
+                      <input
+                        type="range" min="12" max="20" step="1"
+                        :value="uiStore.fontSize"
+                        @input="uiStore.setFontSize(Number(($event.target as HTMLInputElement).value))"
+                        class="font-slider"
+                      />
+                    </div>
+                </div>
+
+                <div v-else-if="activeCategory === 'Notifications'">
+                    <h2>알림 설정</h2>
+                    <div class="settings-section">
+                      <div class="toggle-row">
+                        <div>
+                          <div class="settings-label">브라우저 알림</div>
+                          <div class="settings-desc">브라우저 권한이 필요합니다</div>
+                        </div>
+                        <button
+                          class="toggle-btn"
+                          :class="{ active: uiStore.notificationSettings.enabled }"
+                          @click="uiStore.requestNotificationPermission()"
+                        >{{ uiStore.notificationSettings.enabled ? 'ON' : '권한 요청' }}</button>
+                      </div>
+                      <div class="toggle-row">
+                        <div class="settings-label">멘션 알림</div>
+                        <label class="switch">
+                          <input type="checkbox" v-model="uiStore.notificationSettings.mentions" />
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                      <div class="toggle-row">
+                        <div class="settings-label">모든 메시지 알림</div>
+                        <label class="switch">
+                          <input type="checkbox" v-model="uiStore.notificationSettings.allMessages" />
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                      <div class="toggle-row">
+                        <div class="settings-label">알림음</div>
+                        <label class="switch">
+                          <input type="checkbox" v-model="uiStore.notificationSettings.sounds" />
+                          <span class="slider"></span>
+                        </label>
+                      </div>
                     </div>
                 </div>
 
@@ -339,6 +423,37 @@ h2 { margin-bottom: 20px; font-weight: 600; font-size: 20px; color: var(--c-text
 }
 
 .placeholder-content { padding: 40px; text-align: center; color: var(--c-text-muted); }
+
+/* 설정 공통 */
+.settings-section { margin-bottom: 28px; }
+.settings-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--c-text-muted); margin-bottom: 8px; letter-spacing: 0.4px; }
+.settings-desc { font-size: 13px; color: var(--c-text-muted); margin-top: 2px; }
+
+/* 테마 */
+.theme-options { display: flex; gap: 8px; flex-wrap: wrap; }
+.theme-btn { background: var(--bg-secondary); border: 2px solid transparent; border-radius: 8px; padding: 10px 18px; color: var(--c-text-normal); cursor: pointer; font-size: 14px; transition: border-color 0.15s; }
+.theme-btn:hover { border-color: var(--c-text-muted); }
+.theme-btn.active { border-color: var(--brand-experiment); color: var(--brand-experiment); }
+
+/* 밀도 */
+.density-options { display: flex; gap: 16px; }
+.radio-item { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--c-text-normal); font-size: 14px; }
+
+/* 폰트 슬라이더 */
+.font-slider { width: 100%; accent-color: var(--brand-experiment); }
+
+/* 토글 행 */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--bg-modifier-accent); }
+.toggle-btn { background: var(--brand-experiment); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.toggle-btn:not(.active) { background: var(--bg-secondary); color: var(--c-text-normal); border: 1px solid var(--bg-modifier-accent); }
+
+/* 스위치 토글 */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background: var(--bg-modifier-accent); border-radius: 24px; transition: background 0.2s; cursor: pointer; }
+.slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+.switch input:checked + .slider { background: var(--brand-experiment); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
 
 /* Hide elements by default and show with media queries */
 .mobile-only { display: none; }
