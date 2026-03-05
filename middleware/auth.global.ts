@@ -4,12 +4,15 @@
  * - /login 페이지에서 이미 토큰 있으면 / 리다이렉트
  */
 export default defineNuxtRouteMiddleware((to) => {
-  if (!process.client) return
+  // SSR에서는 스킵 (클라이언트 측에서만 동작)
+  if (!import.meta.client) return
 
   const token = localStorage.getItem('access_token')
+  console.log(`[Auth Middleware] Target: ${to.path}, Token exists: ${!!token}`)
 
   // 이미 로그인 상태에서 /login 접근 시 메인으로
   if (to.path === '/login' && token) {
+    console.log('[Auth Middleware] Already logged in, redirecting to /')
     return navigateTo('/')
   }
 

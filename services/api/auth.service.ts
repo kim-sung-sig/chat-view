@@ -18,7 +18,7 @@ export interface TokenResponse {
 }
 
 export interface AuthResponse {
-  isAuthenticated: boolean
+  authenticated: boolean
   authLevel?: string
   requiresMfa?: boolean
   mfaSessionId?: string

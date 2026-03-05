@@ -13,6 +13,7 @@ export const useAuthStore = defineStore('auth', {
         accessToken: null as string | null,
         currentUser: null as User | null,
         isRefreshing: false,
+        refreshPromise: null as Promise<boolean> | null,
         initialized: false,
     }),
 
@@ -29,7 +30,7 @@ export const useAuthStore = defineStore('auth', {
             const userRaw = localStorage.getItem(USER_KEY)
             if (token) this.accessToken = token
             if (userRaw) {
-                try { this.currentUser = JSON.parse(userRaw) } catch {}
+                try { this.currentUser = JSON.parse(userRaw) } catch { }
             }
             this.initialized = true
         },
@@ -55,69 +56,112 @@ export const useAuthStore = defineStore('auth', {
             const config = useRuntimeConfig()
             const baseURL = config.public.apiBase
 
-            const response = await $fetch<{
-                isAuthenticated: boolean
-                token?: { accessToken: string; refreshToken?: string; expiresIn: number }
-                requiresMfa?: boolean
-                mfaSessionId?: string
-                failureReason?: string
-            }>(`${baseURL}/api/v1/auth/authenticate`, {
-                method: 'POST',
-                credentials: 'include',
-                body: {
-                    identifier,
-                    credentialType: 'PASSWORD',
-                    credentialData: password,
-                },
-            })
+            try {
+                const response = await $fetch<any>(`${baseURL}/api/v1/auth/authenticate`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: {
+                        identifier,
+                        credentialType: 'PASSWORD',
+                        credentialData: password,
+                    },
+                })
 
-            if (response.isAuthenticated && response.token?.accessToken) {
-                this.setToken(response.token.accessToken)
+                console.log('Login Response:', response) // 디버깅용 로그
 
-                // 유저 정보 파싱 (JWT payload에서 추출)
-                const user = parseUserFromToken(response.token.accessToken)
-                if (user) this.setUser(user)
+                // 백엔드 응답 필드 확인 (authenticated 또는 isAuthenticated 둘 다 체크)
+                const isAuthenticated = response.authenticated === true || response.isAuthenticated === true || response.success === true
+                const tokenObj = response.token
 
-                return { success: true }
+                console.log('Is Authenticated:', isAuthenticated)
+                console.log('Token object:', tokenObj)
+
+                if (isAuthenticated && tokenObj?.accessToken) {
+                    console.log('Login successful, setting token...')
+                    this.setToken(tokenObj.accessToken)
+
+                    // 유저 정보 파싱 (JWT payload에서 추출)
+                    const user = parseUserFromToken(tokenObj.accessToken)
+                    console.log('Parsed User:', user)
+                    if (user) {
+                        this.setUser(user)
+                    }
+
+                    return { success: true }
+                }
+
+                console.warn('Authentication failed criteria not met')
+                if (response.requiresMfa) {
+                    return { success: false, requiresMfa: true, mfaSessionId: response.mfaSessionId }
+                }
+
+                const failReason = response.failureReason || response.message || '인증 정보는 올바르나 토큰을 받지 못했습니다.'
+                return { success: false, reason: failReason }
+            } catch (err: any) {
+                console.error('Login error:', err)
+                return {
+                    success: false,
+                    reason: err.data?.failureReason || err.data?.message || err.message || '인증 실패'
+                }
             }
-
-            if (response.requiresMfa) {
-                return { success: false, requiresMfa: true, mfaSessionId: response.mfaSessionId }
-            }
-
-            return { success: false, reason: response.failureReason || '인증 실패' }
         },
 
         /** 토큰 갱신 (refresh_token 쿠키 사용) */
         async refreshToken(): Promise<boolean> {
-            if (this.isRefreshing) return false
-            this.isRefreshing = true
-
-            try {
-                const config = useRuntimeConfig()
-                const baseURL = config.public.apiBase
-
-                const response = await $fetch<{
-                    isAuthenticated: boolean
-                    token?: { accessToken: string; expiresIn: number }
-                }>(`${baseURL}/api/v1/auth/refresh`, {
-                    method: 'POST',
-                    credentials: 'include',
-                })
-
-                if (response.isAuthenticated && response.token?.accessToken) {
-                    this.setToken(response.token.accessToken)
-                    return true
-                }
-
-                this.logout()
-                return false
-            } catch {
-                this.logout()
-                return false
-            } finally {
-                this.isRefreshing = false
+            // 이미 진행 중인 갱신 요청이 있으면 그 Promise를 반환하여 결과를 공유
+            if (this.refreshPromise) {
+                console.log('[Auth Store] refreshToken already in progress, sharing promise...')
+                return this.refreshPromise
             }
+
+            this.refreshPromise = (async () => {
+                this.isRefreshing = true
+                console.log('--- Auth Store: Starting refreshToken (with cookies) ---')
+
+                try {
+                    const config = useRuntimeConfig()
+                    const baseURL = config.public.apiBase
+
+                    const response = await $fetch<any>(`${baseURL}/api/v1/auth/refresh`, {
+                        method: 'POST',
+                        credentials: 'include',
+                    })
+
+                    console.log('Refresh Response:', response)
+
+                    const isAuthenticated = response.authenticated === true || response.isAuthenticated === true || response.success === true
+                    const tokenObj = response.token
+
+                    if (isAuthenticated && tokenObj?.accessToken) {
+                        console.log('Refresh successful! Updating token...')
+                        this.setToken(tokenObj.accessToken)
+
+                        // 유저 정보 파싱
+                        const user = parseUserFromToken(tokenObj.accessToken)
+                        if (user) {
+                            this.setUser(user)
+                        }
+                        return true
+                    }
+
+                    console.warn('Refresh response received but authenticated is false or token missing')
+                    this.logout()
+                    return false
+                } catch (err: any) {
+                    console.error('RefreshToken error:', err)
+                    // 401 등은 정상적인 세션 만료이므로 로그아웃 처리
+                    if (err.status === 401) {
+                        this.logout()
+                    }
+                    return false
+                } finally {
+                    this.isRefreshing = false
+                    this.refreshPromise = null
+                    console.log('--- Auth Store: Finished refreshToken ---')
+                }
+            })()
+
+            return this.refreshPromise
         },
 
         /** 로그아웃 */
@@ -129,7 +173,7 @@ export const useAuthStore = defineStore('auth', {
                     credentials: 'include',
                     headers: this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {},
                 })
-            } catch {}
+            } catch { }
 
             this.accessToken = null
             this.currentUser = null

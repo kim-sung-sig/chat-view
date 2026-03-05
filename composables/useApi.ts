@@ -28,8 +28,8 @@ export const useApi = () => {
         ? localStorage.getItem('access_token')
         : null
       if (token) {
-        const headers = (options.headers || {}) as Record<string, string>
-        headers['Authorization'] = `Bearer ${token}`
+        const headers = new Headers(options.headers || {})
+        headers.set('Authorization', `Bearer ${token}`)
         options.headers = headers
       }
     },
@@ -42,23 +42,23 @@ export const useApi = () => {
           const baseURL = runtimeConfig.public.apiBase
 
           const refreshResp = await $fetch<{
-            isAuthenticated: boolean
+            authenticated: boolean
             token?: { accessToken: string }
           }>(`${baseURL}/api/v1/auth/refresh`, {
             method: 'POST',
             credentials: 'include',
           })
 
-          if (refreshResp.isAuthenticated && refreshResp.token?.accessToken) {
+          if (refreshResp.authenticated && refreshResp.token?.accessToken) {
             const newToken = refreshResp.token.accessToken
             localStorage.setItem('access_token', newToken)
-            // 원래 요청 재시도
-            const headers = (options.headers || {}) as Record<string, string>
-            headers['Authorization'] = `Bearer ${newToken}`
+
+            const headers = new Headers(options.headers || {})
+            headers.set('Authorization', `Bearer ${newToken}`)
             options.headers = headers
             return
           }
-        } catch {}
+        } catch { }
 
         // 갱신 실패 → 로그인 페이지
         localStorage.removeItem('access_token')

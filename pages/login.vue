@@ -2,12 +2,14 @@
 /**
  * 로그인/회원가입 페이지
  */
-import { ref, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '~/store/auth'
+import { useDataStore } from '~/store/data'
 
 definePageMeta({ layout: 'blank' })
 
 const authStore = useAuthStore()
+const dataStore = useDataStore()
 const router = useRouter()
 
 const activeTab = ref<'login' | 'signup'>('login')
@@ -21,6 +23,43 @@ const isLoading = ref(false)
 const error = ref('')
 const successMsg = ref('')
 const showPassword = ref(false)
+
+// 페이지 진입 시 자동 로그인 체크
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    navigateTo('/')
+    return
+  }
+
+  // 엑세스 토큰은 없으나 리프레쉬 토큰 시도 (app.vue에서 이미 했을 수도 있지만 안전하게 체크)
+  if (!authStore.accessToken) {
+    isLoading.value = true
+    try {
+      const success = await authStore.refreshToken()
+      if (success) {
+        // 데이터 스토어 동기화 후 이동
+        if (authStore.currentUser) {
+          dataStore.currentUser = authStore.currentUser
+          dataStore.users[authStore.currentUser.id] = authStore.currentUser
+        }
+        console.log('Auto-login successful, redirecting...')
+        await navigateTo('/')
+      }
+    } catch (e) {
+      // 자동 로그인 실패는 무시하고 로그인 폼 보여줌
+    } finally {
+      isLoading.value = false
+    }
+  }
+})
+
+// 인증 상태 감시 (다른 곳에서 로그인이 완료되면 즉시 이동)
+watch(() => authStore.isAuthenticated, (isAuth) => {
+  if (isAuth) {
+    console.log('[Login Page] Authenticated detected via watch, redirecting...')
+    navigateTo('/')
+  }
+}, { immediate: true })
 
 // 로그인
 const handleLogin = async () => {
@@ -36,12 +75,11 @@ const handleLogin = async () => {
     if (result.success) {
       // data store에 현재 유저 동기화
       if (authStore.currentUser) {
-        const { useDataStore } = await import('~/store/data')
-        const dataStore = useDataStore()
         dataStore.currentUser = authStore.currentUser
         dataStore.users[authStore.currentUser.id] = authStore.currentUser
       }
-      await router.push('/')
+      console.log('Manual login successful, redirecting to /...')
+      await navigateTo('/')
     } else if (result.requiresMfa) {
       error.value = 'MFA 인증이 필요합니다. (현재 미지원)'
     } else {
