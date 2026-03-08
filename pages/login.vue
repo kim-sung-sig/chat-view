@@ -105,8 +105,8 @@ const handleSignup = async () => {
     error.value = '비밀번호가 일치하지 않습니다.'
     return
   }
-  if (signupForm.value.password.length < 8) {
-    error.value = '비밀번호는 8자 이상이어야 합니다.'
+  if (signupForm.value.password.length < MIN_PASSWORD_LENGTH) {
+    error.value = `비밀번호는 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.`
     return
   }
 
@@ -130,12 +130,20 @@ const handleSignup = async () => {
   }
 }
 
+// 에러 메시지 키워드 매핑
+const ERROR_MAPPINGS = [
+  { keywords: ['401', 'unauthorized'], message: '아이디 또는 비밀번호가 올바르지 않습니다.' },
+  { keywords: ['429', 'too many'], message: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+  { keywords: ['409', 'conflict'], message: '이미 사용 중인 이메일입니다.' }
+]
+
 const getErrorMessage = (msg?: string) => {
   if (!msg) return '오류가 발생했습니다. 다시 시도해주세요.'
-  if (msg.includes('401') || msg.toLowerCase().includes('unauthorized')) return '아이디 또는 비밀번호가 올바르지 않습니다.'
-  if (msg.includes('429') || msg.toLowerCase().includes('too many')) return '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.'
-  if (msg.includes('409') || msg.toLowerCase().includes('conflict')) return '이미 사용 중인 이메일입니다.'
-  return msg
+  const lowerMsg = msg.toLowerCase()
+  const match = ERROR_MAPPINGS.find(mapping => 
+    mapping.keywords.some(kw => lowerMsg.includes(kw))
+  )
+  return match?.message ?? msg
 }
 
 const switchTab = (tab: 'login' | 'signup') => {
@@ -144,19 +152,31 @@ const switchTab = (tab: 'login' | 'signup') => {
   successMsg.value = ''
 }
 
+const MIN_PASSWORD_LENGTH = 8
+const STRONG_PASSWORD_LENGTH = 12
+const MAX_STRENGTH_SCORE = 4
+
+const PASSWORD_STRENGTH_LEVELS = [
+  { class: '', label: '' },
+  { class: 'weak', label: '약함' },
+  { class: 'fair', label: '보통' },
+  { class: 'good', label: '좋음' },
+  { class: 'strong', label: '강함' }
+] as const
+
 // 비밀번호 강도
 const pwStrengthScore = computed(() => {
   const pw = signupForm.value.password
   let score = 0
-  if (pw.length >= 8) score++
-  if (pw.length >= 12) score++
+  if (pw.length >= MIN_PASSWORD_LENGTH) score++
+  if (pw.length >= STRONG_PASSWORD_LENGTH) score++
   if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++
   if (/[0-9]/.test(pw)) score++
   if (/[^A-Za-z0-9]/.test(pw)) score++
-  return Math.min(4, score)
+  return Math.min(MAX_STRENGTH_SCORE, score)
 })
-const pwStrengthClass = computed(() => ['', 'weak', 'fair', 'good', 'strong'][pwStrengthScore.value] ?? '')
-const pwStrengthLabel = computed(() => ['', '약함', '보통', '좋음', '강함'][pwStrengthScore.value] ?? '')
+const pwStrengthClass = computed(() => PASSWORD_STRENGTH_LEVELS[pwStrengthScore.value]?.class ?? '')
+const pwStrengthLabel = computed(() => PASSWORD_STRENGTH_LEVELS[pwStrengthScore.value]?.label ?? '')
 </script>
 
 <template>

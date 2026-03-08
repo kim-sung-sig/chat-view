@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import VoiceControls from '~/components/channel/VoiceControls.vue';
 import UserPanel from '~/components/common/UserPanel.vue';
+import { webRtcService } from '~/services/webrtc.service';
 import { useChatStore } from '~/store/chat';
 import { useDataStore } from '~/store/data';
 import { useUIStore } from '~/store/ui';
+import { useVoiceStore } from '~/store/voice';
 
 const chatStore = useChatStore();
 const store = useDataStore();
 const uiStore = useUIStore();
+const voiceStore = useVoiceStore();
 
 const activeServer = computed(() => store.getActiveServer);
 const activeServerId = computed(() => store.activeServerId);
@@ -28,6 +32,11 @@ const selectChannel = async (id: string) => {
     store.setActiveChannel(id);
     uiStore.clearUnread(id);
     if (typeof window !== 'undefined' && window.innerWidth <= 768) uiStore.closeMobileSidebar();
+};
+
+const selectVoiceChannel = async (id: string) => {
+    if (voiceStore.currentRoomId === id) return; // 이미 참여 중
+    await webRtcService.startStreaming(id);
 };
 
 const toggleCategory = (key: string) => { collapsedCategories.value[key] = !collapsedCategories.value[key]; };
@@ -94,17 +103,25 @@ onMounted(async () => { try { await chatStore.loadMyChannels(); } catch {} });
           <div
             v-for="channel in voiceChannels" :key="channel.id"
             class="channel-item"
-            :class="{ active: activeChannelId === channel.id }"
-            @click="selectChannel(channel.id)"
+            :class="{ active: voiceStore.currentRoomId === channel.id }"
+            @click="selectVoiceChannel(channel.id)"
           >
             <span class="channel-voice-icon">🔊</span>
             <span class="channel-name">{{ channel.name }}</span>
             <button class="delete-btn" @click="deleteChannel($event, channel.id)">×</button>
+            <div v-if="voiceStore.currentRoomId === channel.id" class="voice-participants">
+                <div v-for="p in voiceStore.participants" :key="p.userId" class="voice-user">
+                    <img :src="`https://placehold.co/24x24?text=${p.userId}`" class="voice-user-avatar" />
+                    <span>User {{p.userId}}</span>
+                </div>
+            </div>
           </div>
         </template>
       </div>
     </div>
 
+    <!-- 하단 연결 컨트롤 -->
+    <VoiceControls />
     <UserPanel />
   </aside>
 </template>

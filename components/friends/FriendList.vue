@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useDataStore } from '~/store/data';
 import { useUIStore } from '~/store/ui';
 
@@ -12,23 +12,60 @@ const pendingSubTab = ref<'incoming' | 'outgoing'>('incoming');
 const contextMenu = ref<{ userId: string; x: number; y: number } | null>(null);
 const nicknameEdit = ref<{ userId: string; value: string } | null>(null);
 
-const friends = computed(() => store.getFriends);
-const pending = computed(() => store.getPendingRequests as any[]);
-const onlineFriends = computed(() => friends.value.filter(f => f?.status !== 'offline'));
-const pendingIncoming = computed(() => pending.value.filter(r => r.type === 'pending_incoming'));
-const pendingOutgoing = computed(() => pending.value.filter(r => r.type === 'pending_outgoing'));
-const blockedUsers = computed(() =>
-  store.relationships.filter(r => r.type === 'blocked').map(r => store.users[r.userId]).filter(Boolean)
-);
+import { FriendshipService, type FriendshipResponse } from '~/services/api/friendship.service';
+const friendshipService = new FriendshipService();
+
+const apiFriends = ref<FriendshipResponse[]>([]);
+const apiPendingIncoming = ref<FriendshipResponse[]>([]);
+const apiPendingOutgoing = ref<FriendshipResponse[]>([]);
+const apiBlocked = ref<FriendshipResponse[]>([]);
+
+const loadFriendsData = async () => {
+  try {
+    apiFriends.value = await friendshipService.getFriends();
+    apiPendingIncoming.value = await friendshipService.getPendingRequests();
+    apiPendingOutgoing.value = await friendshipService.getSentRequests();
+    apiBlocked.value = await friendshipService.getBlocked();
+  } catch (err) {
+    console.error('Failed to load friends data:', err);
+  }
+};
+
+loadFriendsData();
+
+const friends = computed(() => {
+  return apiFriends.value.map(f => ({
+    id: f.friendId,
+    username: f.nickname || `User-${f.friendId.substring(0,4)}`,
+    status: 'online', // Mock status
+    avatarUrl: `https://placehold.co/32/5865f2/fff?text=${(f.nickname || 'U')[0]}`,
+    favorite: f.favorite
+  }));
+});
+
+const onlineFriends = computed(() => friends.value);
+const pendingIncoming = computed(() => apiPendingIncoming.value.map(f => ({ ...f, userId: f.userId || f.friendId })));
+const pendingOutgoing = computed(() => apiPendingOutgoing.value.map(f => ({ ...f, userId: f.friendId })));
+const blockedUsers = computed(() => apiBlocked.value.map(f => ({
+    id: f.friendId,
+    username: f.nickname || `User-${f.friendId.substring(0,4)}`,
+    avatarUrl: `https://placehold.co/32/da373c/fff?text=?`
+})));
 
 const setTab = (tab: string) => { activeTab.value = tab; contextMenu.value = null; };
 
-const handleAddFriend = () => {
+const handleAddFriend = async () => {
   if (!addFriendInput.value.trim()) return;
-  store.sendFriendRequest?.(addFriendInput.value);
-  addFriendInput.value = '';
-  showSuccess.value = true;
-  setTimeout(() => showSuccess.value = false, 3000);
+  try {
+    await friendshipService.sendRequest(addFriendInput.value);
+    addFriendInput.value = '';
+    showSuccess.value = true;
+    setTimeout(() => showSuccess.value = false, 3000);
+    await loadFriendsData();
+  } catch (err) {
+    console.error('Add friend failed', err);
+    alert('친구 요청 실패');
+  }
 };
 
 const startDM = (userId: string) => {
@@ -42,16 +79,50 @@ const openCtxMenu = (e: MouseEvent, userId: string) => {
 };
 const closeCtxMenu = () => { contextMenu.value = null; };
 
-const removeFriend = (userId: string) => {
-  store.removeFriend?.(userId);
-  closeCtxMenu();
+const removeFriend = async (userId: string) => {
+  try {
+    await friendshipService.removeFriend(userId);
+    closeCtxMenu();
+    await loadFriendsData();
+  } catch (err) { console.error('Failed to remove friend', err); }
 };
 
-const acceptRequest = (userId: string) => store.acceptFriendRequest?.(userId);
-const rejectRequest = (userId: string) => store.rejectFriendRequest?.(userId);
-const toggleFavorite = (userId: string) => store.toggleFavorite?.(userId);
+const acceptRequest = async (requestId: string) => {
+  try {
+    await friendshipService.acceptRequest(requestId);
+    await loadFriendsData();
+  } catch (err) { console.error('Failed to accept request', err); }
+};
 
-const statusLabel = (status: string) => ({ online: '온라인', idle: '자리 비움', dnd: '방해 금지', offline: '오프라인' }[status] || status);
+const rejectRequest = async (requestId: string) => {
+  try {
+    await friendshipService.rejectRequest(requestId);
+    await loadFriendsData();
+  } catch (err) { console.error('Failed to reject request', err); }
+};
+
+const toggleFavorite = async (userId: string) => {
+  try {
+    await friendshipService.toggleFavorite(userId);
+    await loadFriendsData();
+  } catch (err) { console.error('Failed to toggle favorite', err); }
+};
+
+const unblockUser = async (userId: string) => {
+  try {
+    await friendshipService.unblockUser(userId);
+    await loadFriendsData();
+  } catch (err) { console.error('Failed to unblock', err); }
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  online: '온라인',
+  idle: '자리 비움',
+  dnd: '방해 금지',
+  offline: '오프라인'
+};
+
+const statusLabel = (status: string) => STATUS_LABELS[status] || status;
 </script>
 
 <template>
@@ -90,8 +161,8 @@ const statusLabel = (status: string) => ({ online: '온라인', idle: '자리 �
         </div>
         <div class="friend-info">
           <div class="friend-name">
-            {{ store.relationships.find(r => r.userId === friend?.id)?.nickname || friend?.username }}
-            <span v-if="store.relationships.find(r => r.userId === friend?.id)?.favorite" class="fav-star" title="즐겨찾기">⭐</span>
+            {{ friend?.username }}
+            <span v-if="friend?.favorite" class="fav-star" title="즐겨찾기">⭐</span>
           </div>
           <div class="friend-status">{{ statusLabel(friend?.status) }}</div>
         </div>
@@ -125,8 +196,8 @@ const statusLabel = (status: string) => ({ online: '온라인', idle: '자리 �
             <div class="friend-status">친구 요청을 보냈습니다</div>
           </div>
           <div class="friend-actions">
-            <button class="action-btn action-btn--accept" title="수락" @click="acceptRequest(r.userId)">✓</button>
-            <button class="action-btn action-btn--reject" title="거절" @click="rejectRequest(r.userId)">✗</button>
+            <button class="action-btn action-btn--accept" title="수락" @click="acceptRequest(r.id || r.userId)">✓</button>
+            <button class="action-btn action-btn--reject" title="거절" @click="rejectRequest(r.id || r.userId)">✗</button>
           </div>
         </div>
         <div v-if="!pendingIncoming.length" class="empty-state">받은 친구 요청이 없습니다.</div>
@@ -134,13 +205,13 @@ const statusLabel = (status: string) => ({ online: '온라인', idle: '자리 �
       <template v-else>
         <div class="section-label">보낸 친구 요청 — {{ pendingOutgoing.length }}</div>
         <div v-for="r in pendingOutgoing" :key="r.userId" class="friend-item">
-          <img :src="store.users[r.userId]?.avatarUrl || `https://placehold.co/32/5865f2/fff?text=?`" class="avatar" />
+          <img :src="`https://placehold.co/32/5865f2/fff?text=?`" class="avatar" />
           <div class="friend-info">
-            <div class="friend-name">{{ store.users[r.userId]?.username || r.userId }}</div>
+            <div class="friend-name">{{ r.nickname || r.userId }}</div>
             <div class="friend-status">요청 대기 중</div>
           </div>
           <div class="friend-actions">
-            <button class="action-btn action-btn--reject" title="취소" @click="rejectRequest(r.userId)">✗</button>
+            <button class="action-btn action-btn--reject" title="취소" @click="rejectRequest(r.id || r.userId)">✗</button>
           </div>
         </div>
         <div v-if="!pendingOutgoing.length" class="empty-state">보낸 친구 요청이 없습니다.</div>
@@ -156,7 +227,7 @@ const statusLabel = (status: string) => ({ online: '온라인', idle: '자리 �
           <div class="friend-name">{{ user.username }}</div>
           <div class="friend-status">차단됨</div>
         </div>
-        <button class="action-btn" @click="store.unblockUser?.(user.id)">차단 해제</button>
+        <button class="action-btn" @click="unblockUser(user.id)">차단 해제</button>
       </div>
       <div v-if="!blockedUsers.length" class="empty-state">차단된 사용자가 없습니다.</div>
     </div>
@@ -168,7 +239,7 @@ const statusLabel = (status: string) => ({ online: '온라인', idle: '자리 �
       <div class="add-input-wrap" :class="{ success: showSuccess }">
         <input
           v-model="addFriendInput"
-          placeholder="사용자명#0000"
+          placeholder="사용자 ID를 입력하세요"
           @keydown.enter="handleAddFriend"
         />
         <button @click="handleAddFriend">친구 요청 보내기</button>

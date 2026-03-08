@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useAuthStore } from '~/store/auth';
 import { useDataStore } from '~/store/data';
 import { useUIStore } from '~/store/ui';
-import { useAuthStore } from '~/store/auth';
-import type { Theme, MessageDensity } from '~/types';
 
 const uiStore = useUIStore();
 const dataStore = useDataStore();
@@ -19,8 +18,7 @@ const categories = [
     { separator: true },
     { header: 'APP SETTINGS' },
     { name: 'Appearance' },
-    { name: 'Accessibility' },
-    { name: 'Voice & Video' },
+    { name: 'Notifications' },
     { separator: true },
     { name: 'Log Out', danger: true }
 ];
@@ -36,12 +34,25 @@ const selectCategory = (name: string) => {
 };
 
 const close = () => {
-    // Reverse animation logic could go here, but for now just close
     uiStore.closeSettings();
 };
 
 const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value;
+};
+
+const editUsername = () => {
+  if (!currentUser.value) return;
+  const newName = prompt('Enter new username:', currentUser.value.username);
+  if (newName && newName.trim() !== '') {
+    // Only updates locally since backend /api/users lacks update support
+    authStore.currentUser = { ...authStore.currentUser, username: newName } as any;
+    dataStore.currentUser = { ...dataStore.currentUser, username: newName } as any;
+  }
+};
+
+const notSupported = () => {
+  window.alert('Not supported yet');
 };
 </script>
 
@@ -82,33 +93,33 @@ const toggleMobileMenu = () => {
                    <div class="banner"></div>
                    <div class="user-details">
                        <div class="avatar-uploader">
-                           <img :src="currentUser.avatarUrl" />
+                           <img :src="currentUser.avatarUrl || 'https://placehold.co/100x100?text=U'" />
                        </div>
                        <div class="name-tag">
                            <h3>{{ currentUser.username }}</h3>
-                           <span>#{{ currentUser.discriminator }}</span>
+                           <span>#{{ currentUser.discriminator || '0000' }}</span>
                        </div>
-                       <button class="edit-btn">Edit User Profile</button>
+                       <button class="edit-btn" @click="editUsername">Edit User Profile</button>
                    </div>
                    <div class="info-row">
                        <div class="label">DISPLAY NAME</div>
                        <div class="val">{{ currentUser.username }}</div>
-                       <button class="btn-secondary">Edit</button>
+                       <button class="btn-secondary" @click="editUsername">Edit</button>
                    </div>
                    <div class="info-row">
                        <div class="label">USERNAME</div>
                        <div class="val">{{ currentUser.username }}</div>
-                       <button class="btn-secondary">Edit</button>
+                       <button class="btn-secondary" @click="editUsername">Edit</button>
                    </div>
                    <div class="info-row">
                        <div class="label">EMAIL</div>
                        <div class="val">user@example.com</div>
-                       <button class="btn-secondary">Edit</button>
+                       <button class="btn-secondary" @click="notSupported">Edit</button>
                    </div>
                    <div class="info-row">
                        <div class="label">PHONE NUMBER</div>
                        <div class="val">Not set</div>
-                       <button class="btn-secondary">Add</button>
+                       <button class="btn-secondary" @click="notSupported">Add</button>
                    </div>
                     </div>
                 </div>
